@@ -1,11 +1,15 @@
-const initialState = {};
+import { ApplicationState } from './types';
+
+const initialState: ApplicationState = {
+    message: 'Hello World?'
+};
 
 export default (
     state = initialState,
     { type, payload }: { type: string; payload?: any }
-): any => {
+): ApplicationState => {
     switch (type) {
         default:
-            return { ...state, payload };
+            return { ...state };
     }
 };

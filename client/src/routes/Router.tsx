@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import HomePage from '../pages/HomePage';
+import { Loading } from '../components/Loading';
+
+const HomePage = lazy(() => import('../pages/HomePage'));
 
 export const Router = (): React.ReactElement => (
     <BrowserRouter>
-        <Switch>
-            <Route component={HomePage} />
-        </Switch>
+        <Suspense fallback={<Loading />}>
+            <Switch>
+                <Route component={HomePage} />
+            </Switch>
+        </Suspense>
     </BrowserRouter>
 );
 
