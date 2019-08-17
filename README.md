@@ -1,9 +1,9 @@
-# Placeholder for barrow.dev
+# Placeholder for barrow.dev server
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/f34c9176-99a5-48fe-a31b-a1e1dfb84aa4/deploy-status)](https://app.netlify.com/sites/barrow/deploys)
+Now with automated CI/CD!
 
 ## Upcoming features:
 
-- Node.js Based Blog Platform
-- Interactive Portfolio
-- Certifications and Work Experience Timeline
+-   Socket based chat
+-   Locale packs
+-   The great unknown!
