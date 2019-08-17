@@ -4,7 +4,9 @@
   "description": "Server side connection to Ashley Barrow's website.",
   "main": "index.js",
   "scripts": {
-    "start": "tsc --build --clean && tsc && node build/server.js"
+    "build": "tsc --build --clean && tsc",
+    "test": "jest --config=jest.config.js --coverage",
+    "start": "node build/server.js"
   },
   "repository": {
     "type": "git",
