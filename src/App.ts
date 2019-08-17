@@ -1,10 +1,11 @@
 import express = require('express');
 import { urlencoded, json } from 'body-parser';
 import { NextFunction } from 'connect';
-import io from './middleware/socket';
+import io from './socket';
 
 class App {
     public app: express.Application;
+    public io: SocketIO.Server;
 
     constructor() {
         this.app = express();
@@ -15,7 +16,7 @@ class App {
         this.handleErrors();
     }
 
-    setDefaultHeaders() {
+    setDefaultHeaders(): void {
         this.app.use((req, res, next) => {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader(
@@ -30,24 +31,22 @@ class App {
         });
     }
 
-    mountRoutes() {
-        this.app.get('/test', (req, res, next) => {
-            io.getIO().emit('test', {
-                action: 'test'
-            });
+    mountRoutes(): void {
+        this.app.get('/test', (req, res) => {
             res.status(200).json({
                 message: 'Hello World!'
             });
         });
     }
 
-    handleErrors() {
-        this.app.use((req, res, next) =>
+    handleErrors(): void {
+        this.app.use((req, res) => {
+            io.getIO().emit('test', { hello: 'world' });
             res.status(404).json({
                 message: 'Page not found.',
                 data: req.url
-            })
-        );
+            });
+        });
 
         this.app.use(
             (
@@ -57,9 +56,9 @@ class App {
                     name?: string;
                     data?: any;
                 },
-                req: express.Request,
-                res: express.Response,
-                next: NextFunction
+                req?: express.Request,
+                res?: express.Response,
+                next?: NextFunction
             ) =>
                 res.status(error.statusCode || 500).json({
                     message:
