@@ -12,8 +12,6 @@
 node_modules/
 .tmp/
 .env
-.prettierrc
-.eslintrc.json
 
 # OS or Editor folders
 .vscode/
