@@ -3,13 +3,15 @@ import { connect } from 'react-redux';
 import { ApplicationState } from '../redux/types';
 
 export const Loading = ({
-    message
-}: {
-    message?: string;
-}): React.ReactElement => <div>Loading Message: {message}</div>;
+    message,
+    theme
+}: ApplicationState): React.ReactElement => (
+    <div className={theme}>Loading Message: {message}</div>
+);
 
-const mapStateToProps = (state: ApplicationState): { message: string } => ({
-    message: state.message
+const mapStateToProps = (state: ApplicationState): ApplicationState => ({
+    message: state.message,
+    theme: state.theme
 });
 
 export default connect(mapStateToProps)(Loading);

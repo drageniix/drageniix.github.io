@@ -1,4 +1,4 @@
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
@@ -10,10 +10,10 @@ const path = require("path");
 const outputPath = path.join(__dirname, "/public");
 const appTitle = "Ashley Barrow";
 const themeColor = "#4d004d";
-const appDescription = "Full Stack Development";
+const appDescription = "Fullstack Software Engineer";
 const manifest = {
   name: appTitle,
-  short_name: "Barrow",
+  short_name: "Barrow Dev",
   description: appDescription,
   background_color: "#ffffff",
   theme_color: themeColor,
@@ -86,7 +86,7 @@ module.exports = (env = "development") => {
           use: ["ts-loader"]
         },
         {
-          test: /\.js$/,
+          test: /\.jsx?$/,
           exclude: /node_modules/,
           use: ["babel-loader"]
         },
@@ -124,11 +124,7 @@ module.exports = (env = "development") => {
         chunks: "all"
       },
       minimizer: [
-        new UglifyJsPlugin({
-          cache: true,
-          parallel: true,
-          sourceMap: true
-        }),
+        new TerserPlugin(),
         new OptimizeCSSAssetsPlugin({
           cssProcessorOptions: {
             map: {
@@ -140,7 +136,7 @@ module.exports = (env = "development") => {
       ]
     },
     resolve: {
-      extensions: [".js", ".tsx", ".ts", ".json"]
+      extensions: [".js", ".jsx", ".tsx", ".ts", ".json"]
     },
     devtool: isProduction ? "source-map" : "inline-source-map",
     mode: isProduction ? "production" : "development",
@@ -155,7 +151,8 @@ module.exports = (env = "development") => {
     devServer: {
       hot: true,
       historyApiFallback: true,
-      contentBase: outputPath
+      contentBase: outputPath,
+      open: true
     }
   };
 };

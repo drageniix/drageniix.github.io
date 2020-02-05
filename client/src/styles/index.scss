@@ -6,3 +6,28 @@
 
 @import './base/base';
 @import './base/typography';
+
+// sandbox area
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.light {
+    background-color: $color-grey-light-2;
+    color: $color-grey-dark-4;
+}
+
+.dark {
+    color: $color-grey-light-2;
+    background-color: $color-grey-dark-4;
+}
+
+.sandbox {
+    color: blue;
+    background-color: yellow;
+    font-size: 3rem;
+    padding: 1rem;
+    font-weight: 500;
+}

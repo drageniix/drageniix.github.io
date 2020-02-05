@@ -1,8 +1,11 @@
-import app from "./App";
-import socket from "./middleware/socket";
+import app from './App';
+import http from 'http';
+import socket from './socket';
+
+const server = http.createServer(app);
+socket.init(server);
 
 const port = process.env.PORT || 5000;
-
-const server = app.listen(port);
-
-socket.init(server);
+server.listen(port, () => {
+    console.log(port);
+});

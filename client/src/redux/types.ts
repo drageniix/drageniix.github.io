@@ -1,3 +1,4 @@
 export interface ApplicationState {
-    message: string;
+    message?: string;
+    theme: string;
 }

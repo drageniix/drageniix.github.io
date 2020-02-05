@@ -1,7 +1,11 @@
-import openSocket from 'socket.io-client';
-const io = openSocket('https://barrow-dev.herokuapp.com');
+// import io from 'socket.io-client';
+// const socket = io('https://barrow-dev.herokuapp.com/');
 
-export default (store: any) => {
-    console.log('Store connected');
-    io.on('test', (data: any) => console.log(data));
-};
+// socket.on(
+//     'connect',
+//     (...data: any): void => {
+//         console.log(data);
+//     }
+// );
+
+export default (store: any): void => {};
