@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import Router from './routes/Router';
 import store from './redux/store';
 
-const App = (): React.ReactElement => (
+export const App = (): React.ReactElement => (
     <Provider store={store}>
         <Router />
     </Provider>

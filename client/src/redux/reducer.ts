@@ -1,7 +1,8 @@
 import { ApplicationState } from './types';
 
 const initialState: ApplicationState = {
-    message: 'Hello World?'
+    message: 'Hello World?',
+    theme: 'sandbox'
 };
 
 export default (
