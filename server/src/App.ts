@@ -1,11 +1,11 @@
 import express = require("express");
 import { json, urlencoded } from "body-parser";
 import { NextFunction } from "connect";
-// import io from './socket';
+import logger from "./middleware/logger";
+import io from "./middleware/socket";
 
 class App {
   public app: express.Application;
-  public io: SocketIO.Server;
 
   constructor() {
     this.app = express();
@@ -33,6 +33,7 @@ class App {
 
   mountRoutes(): void {
     this.app.get("/test", (req, res) => {
+      io.getIO().emit("test", { hello: "world" });
       res.status(200).json({
         message: "Hello World!"
       });
@@ -41,10 +42,9 @@ class App {
 
   handleErrors(): void {
     this.app.use((req, res) => {
-      // io.getIO().emit('test', { hello: 'world' });
       res.status(404).json({
         message: "Page not found.",
-        data: req.url
+        url: req.url
       });
     });
 
@@ -59,13 +59,17 @@ class App {
         req?: express.Request,
         res?: express.Response,
         next?: NextFunction
-      ) =>
-        res.status(error.statusCode || 500).json({
+      ) => {
+        const err = {
           message: error.message || error.name || "Internal Server Error",
           data: error.data
-        })
+        };
+        logger.error(`${req.url} ${err.message}`);
+        res.status(error.statusCode || 500).json(err);
+      }
     );
   }
 }
 
-export default new App().app;
+const app = new App();
+export default app.app;

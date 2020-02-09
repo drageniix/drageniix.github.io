@@ -1,11 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const body_parser_1 = require("body-parser");
-const socket_1 = __importDefault(require("./middleware/socket"));
+// import io from './socket';
 class App {
     constructor() {
         this.app = express();
@@ -17,31 +14,29 @@ class App {
     }
     setDefaultHeaders() {
         this.app.use((req, res, next) => {
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
-            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE");
+            res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
             next();
         });
     }
     mountRoutes() {
-        this.app.get('/test', (req, res) => {
+        this.app.get("/test", (req, res) => {
             res.status(200).json({
-                message: 'Hello World!'
+                message: "Hello World!"
             });
         });
     }
     handleErrors() {
         this.app.use((req, res) => {
-            socket_1.default.io.emit('page', {
-                data: req.url
-            });
+            // io.getIO().emit('test', { hello: 'world' });
             res.status(404).json({
-                message: 'Page not found.',
+                message: "Page not found.",
                 data: req.url
             });
         });
         this.app.use((error, req, res, next) => res.status(error.statusCode || 500).json({
-            message: error.message || error.name || 'Internal Server Error',
+            message: error.message || error.name || "Internal Server Error",
             data: error.data
         }));
     }

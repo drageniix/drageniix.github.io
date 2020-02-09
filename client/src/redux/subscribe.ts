@@ -1,11 +1,8 @@
-// import io from 'socket.io-client';
-// const socket = io('https://barrow-dev.herokuapp.com/');
+import io from "socket.io-client";
+const socket = io("localhost:5000");
 
-// socket.on(
-//     'connect',
-//     (...data: any): void => {
-//         console.log(data);
-//     }
-// );
+socket.on("test", (data: any): void => {
+  console.log(data);
+});
 
 export default (store: any): void => {};
