@@ -1,0 +1,46 @@
+{
+  "paycheck": 2743.05,
+  "weeklyAvailable": "$38.70",
+  "underfunded": 2645.790833333333,
+  "extra": 97.25916666666717,
+  "underfundedGroups": {
+    "Bills": 356.92,
+    "Allowance": 144.08083333333332,
+    "Spending": 1232.5500000000002,
+    "Short Term Goals": 912.24
+  },
+  "underfundedCategories": {
+    "Waste 4th": "$50.89",
+    "Juliana": "$16.66",
+    "Household": "$88.89",
+    "Home": "$412.24",
+    "Water 20th": "$168.28",
+    "Jaylon": "$75.00",
+    "Transportation": "$75.08",
+    "Entertainment": "$55.00",
+    "Health": "$500.00",
+    "Phone 18th": "$37.75",
+    "Groceries": "$824.16",
+    "Personal Care": "$59.99",
+    "Dining Out": "$129.43",
+    "Ashley": "$19.19",
+    "Jericho": "$33.23",
+    "Gas 1st": "$100.00"
+  },
+  "options": {
+    "src": "file",
+    "filters": {
+      "include": [
+        "all"
+      ],
+      "exclude": [
+        "retirement",
+        "college"
+      ]
+    },
+    "queryParameters": {
+      "transactionsSince": "2020-06-12T00:00:00.000Z",
+      "scheduledUntil": "2020-07-10T00:00:00.000Z"
+    }
+  }
+}

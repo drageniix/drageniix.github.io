@@ -21,9 +21,9 @@ const manifest = {
   icons: [
     {
       src: path.resolve("./src/assets/icon.png"),
-      sizes: [96, 128, 192, 256, 384, 512]
-    }
-  ]
+      sizes: [96, 128, 192, 256, 384, 512],
+    },
+  ],
 };
 
 function getPlugins(isProduction) {
@@ -39,23 +39,23 @@ function getPlugins(isProduction) {
       minify: {
         removeComments: true,
         collapseWhitespace: true,
-        preserveLineBreaks: false
-      }
+        preserveLineBreaks: false,
+      },
     }),
     new WebpackPwaManifest(manifest),
     new MiniCssExtractPlugin({
       filename: "./styles/[hash].css",
-      chunkFilename: "./styles/[name]-[hash].css"
-    })
+      chunkFilename: "./styles/[name]-[hash].css",
+    }),
   ];
 
   if (isProduction) {
     plugins.unshift(
       new CleanWebpackPlugin({
-        verbose: false
+        verbose: false,
       }),
       new CopyWebpackPlugin([
-        { from: path.resolve("./src/assets/static/_redirects") }
+        { from: path.resolve("./src/assets/static/_redirects") },
       ])
     );
   }
@@ -70,25 +70,25 @@ module.exports = (env = "development") => {
     entry: {
       index: [
         path.resolve("./src/app.tsx"),
-        path.resolve("./src/styles/index.scss")
-      ]
+        path.resolve("./src/styles/index.scss"),
+      ],
     },
     output: {
       path: outputPath,
       publicPath: "/",
-      filename: "./scripts/[name].js"
+      filename: "./scripts/[name].js",
     },
     module: {
       rules: [
         {
           test: /\.tsx?$/,
           exclude: /node_modules/,
-          use: ["ts-loader"]
+          use: ["ts-loader"],
         },
         {
           test: /\.jsx?$/,
           exclude: /node_modules/,
-          use: ["babel-loader"]
+          use: ["babel-loader"],
         },
         {
           test: /\.s?css$/,
@@ -98,30 +98,30 @@ module.exports = (env = "development") => {
               loader: "css-loader",
               options: {
                 url: false,
-                sourceMap: true
-              }
+                sourceMap: true,
+              },
             },
             {
               loader: "postcss-loader",
               options: {
                 sourceMap: true,
-                plugins: () => [require("autoprefixer")()]
-              }
+                plugins: () => [require("autoprefixer")()],
+              },
             },
             {
               loader: "sass-loader",
               options: {
-                sourceMap: true
-              }
-            }
-          ]
-        }
-      ]
+                sourceMap: true,
+              },
+            },
+          ],
+        },
+      ],
     },
     plugins: getPlugins(isProduction),
     optimization: {
       splitChunks: {
-        chunks: "all"
+        chunks: "all",
       },
       minimizer: [
         new TerserPlugin(),
@@ -129,14 +129,14 @@ module.exports = (env = "development") => {
           cssProcessorOptions: {
             map: {
               inline: false,
-              annotation: true
-            }
-          }
-        })
-      ]
+              annotation: true,
+            },
+          },
+        }),
+      ],
     },
     resolve: {
-      extensions: [".js", ".jsx", ".tsx", ".ts", ".json"]
+      extensions: [".js", ".jsx", ".tsx", ".ts", ".json"],
     },
     devtool: isProduction ? "source-map" : "inline-source-map",
     mode: isProduction ? "production" : "development",
@@ -146,13 +146,13 @@ module.exports = (env = "development") => {
       chunks: false,
       modules: false,
       children: false,
-      warnings: false
+      warnings: false,
     },
     devServer: {
       hot: true,
       historyApiFallback: true,
       contentBase: outputPath,
-      open: true
-    }
+      open: true,
+    },
   };
 };

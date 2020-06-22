@@ -1,12 +1,16 @@
 import colors from "colors/safe";
 
 export default {
-  info(message: string) {
-    console.log(`[INFO] ${new Date().toLocaleString()} --- ${message}`);
-  },
-  error(message: string) {
+  info(message: string, traceId?: string) {
     console.log(
-      colors.red(`[ERROR] ${new Date().toLocaleString()} --- ${message}`)
+      `[INFO] ${new Date().toLocaleString()} --${traceId || ""}-- ${message}`
     );
-  }
+  },
+  error(message: string, traceId?: string) {
+    console.log(
+      colors.red(
+        `[ERROR] ${new Date().toLocaleString()} --${traceId || ""}-- ${message}`
+      )
+    );
+  },
 };

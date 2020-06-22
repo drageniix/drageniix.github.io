@@ -9,6 +9,7 @@
 *.vi
 *~
 *.sass-cache
+package-lock.json
 node_modules/
 .tmp/
 .env

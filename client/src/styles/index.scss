@@ -1,33 +1,25 @@
-@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,500');
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:300,500");
 
-@import './abstract/variables';
-@import './abstract/animations';
-@import './abstract/mixins';
+@import "./abstract/variables";
+@import "./abstract/animations";
+@import "./abstract/mixins";
 
-@import './base/base';
-@import './base/typography';
+@import "./base/base";
+@import "./base/typography";
 
 // sandbox area
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .light {
-    background-color: $color-grey-light-2;
-    color: $color-grey-dark-4;
+  background-color: $color-grey-light-2;
+  color: $color-grey-dark-4;
 }
 
 .dark {
-    color: $color-grey-light-2;
-    background-color: $color-grey-dark-4;
-}
-
-.sandbox {
-    color: blue;
-    background-color: yellow;
-    font-size: 3rem;
-    padding: 1rem;
-    font-weight: 500;
+  color: $color-grey-light-2;
+  background-color: $color-grey-dark-4;
 }

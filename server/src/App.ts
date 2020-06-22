@@ -1,8 +1,8 @@
 import express = require("express");
 import { json, urlencoded } from "body-parser";
-import { NextFunction } from "connect";
 import logger from "./middleware/logger";
 import io from "./middleware/socket";
+import budgetRoutes from "./routes/budget";
 
 class App {
   public app: express.Application;
@@ -32,10 +32,12 @@ class App {
   }
 
   mountRoutes(): void {
+    this.app.use("/budget", budgetRoutes);
+
     this.app.get("/test", (req, res) => {
       io.getIO().emit("test", { hello: "world" });
       res.status(200).json({
-        message: "Hello World!"
+        message: "Hello World!",
       });
     });
   }
@@ -44,7 +46,7 @@ class App {
     this.app.use((req, res) => {
       res.status(404).json({
         message: "Page not found.",
-        url: req.url
+        url: req.url,
       });
     });
 
@@ -58,11 +60,11 @@ class App {
         },
         req?: express.Request,
         res?: express.Response,
-        next?: NextFunction
+        next?: express.NextFunction
       ) => {
         const err = {
           message: error.message || error.name || "Internal Server Error",
-          data: error.data
+          data: error.data,
         };
         logger.error(`${req.url} ${err.message}`);
         res.status(error.statusCode || 500).json(err);

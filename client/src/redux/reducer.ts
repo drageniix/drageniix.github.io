@@ -1,16 +1,17 @@
-import { ApplicationState } from './types';
+import budget from "./budget/transformer";
+import { ApplicationState } from "./types/application.types";
 
 const initialState: ApplicationState = {
-    message: 'Hello World?',
-    theme: 'sandbox'
+  message: "Hello World?",
+  budget,
 };
 
 export default (
-    state = initialState,
-    { type, payload }: { type: string; payload?: any }
+  state = initialState,
+  { type, payload }: { type: string; payload?: any }
 ): ApplicationState => {
-    switch (type) {
-        default:
-            return { ...state };
-    }
+  switch (type) {
+    default:
+      return { ...state };
+  }
 };
