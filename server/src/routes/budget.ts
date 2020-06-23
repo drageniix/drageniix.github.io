@@ -1,24 +1,12 @@
 import express from "express";
-import db from "../middleware/firebase";
-import { categoryConverter } from "../models/BudgetCategory";
-// import * as controllers from "../../old/budget/budget";
+import * as accountControllers from "../controllers/accounts";
+import * as payeeControllers from "../controllers/payees";
 
 const router = express.Router();
 
-router.get("/", (req, res) =>
-  db
-    .getDB()
-    .collection("categories")
-    .get()
-    .then((d) => {
-      const categories = d.docs.map((c) => categoryConverter.fromFirestore(c));
-      res.status(200).json(categories);
-    })
-);
+router.get("/account", accountControllers.getAccounts);
 
-// router.get("/account", controllers.getAccounts);
-
-// router.get("/payee", controllers.getPayees);
+router.get("/payee", payeeControllers.getPayees);
 
 // router.get("/category", controllers.getCategories);
 

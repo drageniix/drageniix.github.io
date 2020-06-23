@@ -71,7 +71,7 @@ export const transactionConverter = {
     const data: any = snapshot.data();
     return new BudgetScheduledTransaction({
       ...data,
-      id: snapshot.ref,
+      id: snapshot.ref.id,
       dateFirst: data.dateFirst.toDate(),
       dateNext: data.dateNext.toDate(),
     });

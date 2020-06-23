@@ -1,59 +1,117 @@
 import { firestore } from "firebase-admin";
+import db, { CollectionTypes, FirebaseModel } from "../middleware/firebase";
 
-export default class BudgetAccount {
+export default class BudgetAccount implements FirebaseModel {
   id: firestore.DocumentReference;
   name: string;
   balance: number;
   note: string;
   onBudget: boolean;
   type: string;
-  transferPayeeId: string;
+  transferPayeeId?: firestore.DocumentReference;
+  transferPayeeName?: string;
 
   constructor({
-    id,
-    name,
-    balance,
-    note,
-    onBudget,
-    type,
-    transferPayeeId,
+    explicit,
+    snapshot,
   }: {
-    id: firestore.DocumentReference;
-    name: string;
-    balance: number;
-    note: string;
-    onBudget: boolean;
-    type: string;
-    transferPayeeId: string;
+    explicit?: BudgetAccountInternalProperties;
+    snapshot?: firestore.DocumentSnapshot;
   }) {
-    this.id = id;
+    const {
+      name,
+      balance,
+      note,
+      onBudget,
+      type,
+      transferPayeeId,
+      transferPayeeName,
+    } = explicit || snapshot.data();
+
+    this.id = explicit.id || snapshot.ref;
     this.name = name;
     this.balance = balance;
     this.note = note;
     this.onBudget = onBudget;
     this.type = type;
     this.transferPayeeId = transferPayeeId;
+    this.transferPayeeName = transferPayeeName;
   }
 
-  toString(): string {
-    return `${this.name}: $${this.balance.toFixed(2)}`;
+  getFormattedResponse(): BudgetAccountDisplayProperties {
+    return {
+      id: this.id.id,
+      name: this.name,
+      balance: this.balance,
+      note: this.note,
+      onBudget: this.onBudget,
+      type: this.type,
+      transferPayeeId: this.transferPayeeId.id,
+      transferPayeeName: this.transferPayeeName,
+    };
+  }
+
+  toFireStore(): BudgetAccountInternalProperties {
+    return {
+      name: this.name,
+      balance: this.balance,
+      note: this.note,
+      onBudget: this.onBudget,
+      type: this.type,
+      transferPayeeId: this.transferPayeeId,
+      transferPayeeName: this.transferPayeeName,
+    };
+  }
+
+  setLinkedValues({ transferPayeeName }: { transferPayeeName: string }): void {
+    this.transferPayeeName = transferPayeeName || this.transferPayeeName;
+  }
+
+  async delete(): Promise<firestore.WriteResult> {
+    return this.id.delete();
+  }
+
+  async update(): Promise<firestore.WriteResult> {
+    return this.id.update(this.toFireStore());
+  }
+
+  async post(): Promise<firestore.DocumentReference> {
+    //needs to create a payee first
+    return (this.id = await db
+      .getDB()
+      .collection(CollectionTypes.ACCOUNTS)
+      .add(this.toFireStore()));
+  }
+
+  static async getAllAccounts(): Promise<BudgetAccount[]> {
+    return db
+      .getDB()
+      .collection(CollectionTypes.ACCOUNTS)
+      .get()
+      .then((accounts) =>
+        accounts.docs.map((snapshot) => new BudgetAccount({ snapshot }))
+      );
   }
 }
 
-module.exports.accountConverter = {
-  toFirestore: (account: BudgetAccount): object => ({
-    name: account.name,
-    balance: account.balance,
-    note: account.note,
-    onBudget: account.onBudget,
-    type: account.type,
-    transferPayeeId: account.transferPayeeId,
-  }),
-  fromFirestore: (snapshot: firestore.DocumentSnapshot): BudgetAccount => {
-    const data: any = snapshot.data();
-    return new BudgetAccount({
-      ...data,
-      id: snapshot.ref,
-    });
-  },
+type BudgetAccountInternalProperties = {
+  id?: firestore.DocumentReference;
+  name: string;
+  balance: number;
+  note: string;
+  onBudget: boolean;
+  type: string;
+  transferPayeeId?: firestore.DocumentReference;
+  transferPayeeName?: string;
+};
+
+type BudgetAccountDisplayProperties = {
+  id: string;
+  name: string;
+  balance: number;
+  note: string;
+  onBudget: boolean;
+  type: string;
+  transferPayeeId?: string;
+  transferPayeeName?: string;
 };

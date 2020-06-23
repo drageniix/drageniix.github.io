@@ -43,12 +43,13 @@ class App {
   }
 
   handleErrors(): void {
-    this.app.use((req, res) => {
-      res.status(404).json({
+    this.app.use((req, res, next) =>
+      next({
+        statusCode: 404,
         message: "Page not found.",
         path: req.url,
-      });
-    });
+      })
+    );
 
     this.app.use(
       (
@@ -57,14 +58,15 @@ class App {
           message?: string;
           name?: string;
           data?: any;
+          url?: string;
         },
         req?: express.Request,
         res?: express.Response,
-        next?: express.NextFunction
+        next?: express.NextFunction // eslint-disable-line
       ) => {
         const err = {
           code: error.statusCode || 500,
-          path: req.url,
+          path: error.url || req.url,
           message:
             error.message ||
             error.name ||

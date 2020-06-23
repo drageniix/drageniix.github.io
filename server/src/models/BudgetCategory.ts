@@ -1,41 +1,38 @@
 import { firestore } from "firebase-admin";
+import db, { CollectionTypes, FirebaseModel } from "../middleware/firebase";
 
-export default class BudgetCategory {
-  id: firestore.DocumentReference;
-  goalCreationMonth: Date;
-  goalTarget: number;
-  goalTargetMonth: Date;
-  goalType: string;
+export default class BudgetCategory implements FirebaseModel {
+  id?: firestore.DocumentReference;
+  goalCreationMonth?: Date;
+  goalTarget?: number;
+  goalTargetMonth?: Date;
+  goalType?: string;
   groupId: firestore.DocumentReference;
-  groupName: string;
+  groupName?: string;
   hidden: boolean;
   name: string;
   note: string;
 
   constructor({
-    id,
-    goalCreationMonth,
-    goalTarget,
-    goalTargetMonth,
-    goalType,
-    groupId,
-    groupName,
-    hidden,
-    name,
-    note,
+    explicit,
+    snapshot,
   }: {
-    id: firestore.DocumentReference;
-    goalCreationMonth: Date;
-    goalTarget: number;
-    goalTargetMonth: Date;
-    goalType: string;
-    groupId: firestore.DocumentReference;
-    groupName: string;
-    hidden: boolean;
-    name: string;
-    note: string;
+    explicit?: BudgetCategoryInternalProperties;
+    snapshot?: firestore.DocumentSnapshot;
   }) {
-    this.id = id;
+    const {
+      goalCreationMonth,
+      goalTarget,
+      goalTargetMonth,
+      goalType,
+      groupId,
+      groupName,
+      hidden,
+      name,
+      note,
+    } = explicit || snapshot.data();
+
+    this.id = explicit.id || snapshot.ref;
     this.goalCreationMonth = goalCreationMonth;
     this.goalTarget = goalTarget;
     this.goalTargetMonth = goalTargetMonth;
@@ -46,27 +43,87 @@ export default class BudgetCategory {
     this.name = name;
     this.note = note;
   }
+
+  getFormattedResponse(): BudgetCategoryDisplayProperties {
+    return {
+      id: this.id.id,
+      goalCreationMonth: this.goalCreationMonth,
+      goalTarget: this.goalTarget,
+      goalTargetMonth: this.goalTargetMonth,
+      goalType: this.goalType,
+      groupId: this.groupId.id,
+      groupName: this.groupName,
+      hidden: this.hidden,
+      name: this.name,
+      note: this.note,
+    };
+  }
+
+  toFireStore(): BudgetCategoryInternalProperties {
+    return {
+      goalCreationMonth: this.goalCreationMonth,
+      goalTarget: this.goalTarget,
+      goalTargetMonth: this.goalTargetMonth,
+      goalType: this.goalType,
+      groupId: this.groupId,
+      hidden: this.hidden,
+      name: this.name,
+      note: this.note,
+    };
+  }
+
+  setLinkedValues({ groupName }: { groupName: string }): void {
+    this.groupName = groupName || this.groupName;
+  }
+
+  async delete(): Promise<firestore.WriteResult> {
+    return this.id.delete();
+  }
+
+  async update(): Promise<firestore.WriteResult> {
+    return this.id.update(this.toFireStore());
+  }
+
+  async post(): Promise<firestore.DocumentReference> {
+    return (this.id = await db
+      .getDB()
+      .collection(CollectionTypes.CATEGORIES)
+      .add(this.toFireStore()));
+  }
+
+  static async getAllCategories(): Promise<BudgetCategory[]> {
+    return db
+      .getDB()
+      .collection(CollectionTypes.CATEGORIES)
+      .get()
+      .then((categories) =>
+        categories.docs.map((snapshot) => new BudgetCategory({ snapshot }))
+      );
+  }
 }
 
-export const categoryConverter = {
-  toFirestore: (category: BudgetCategory): object => ({
-    goalCreationMonth: category.goalCreationMonth,
-    goalTarget: category.goalTarget,
-    goalTargetMonth: category.goalTargetMonth,
-    goalType: category.goalType,
-    groupId: category.groupId,
-    groupName: category.groupName,
-    hidden: category.hidden,
-    name: category.name,
-    note: category.note,
-  }),
-  fromFirestore: (snapshot: firestore.DocumentSnapshot): BudgetCategory => {
-    const data: any = snapshot.data();
-    return new BudgetCategory({
-      ...data,
-      id: snapshot.ref,
-      goalCreationMonth: data.goalCreationMonth.toDate(),
-      goalTargetMonth: data.goalTargetMonth.toDate(),
-    });
-  },
+type BudgetCategoryInternalProperties = {
+  id?: firestore.DocumentReference;
+  goalCreationMonth?: Date;
+  goalTarget?: number;
+  goalTargetMonth?: Date;
+  goalType?: string;
+  groupId: firestore.DocumentReference;
+  groupName?: string;
+  hidden: boolean;
+  name: string;
+  note: string;
+};
+
+type BudgetCategoryDisplayProperties = {
+  id?: string;
+  goalCreationMonth?: Date;
+  goalTarget?: number;
+  goalTargetMonth?: Date;
+  goalType?: string;
+  groupId: string;
+  groupName?: string;
+  hidden: boolean;
+  name: string;
+  note: string;
 };
