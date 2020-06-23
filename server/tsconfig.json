@@ -1,21 +1,21 @@
 {
-    "compilerOptions": {
-        "outDir": "./build",
-        // "sourceMap": true,
-        "noImplicitAny": true,
-        "module": "commonjs",
-        "target": "es2015",
-        "types": ["node"],
-        "typeRoots": ["node_modules/@types"],
-        "lib": ["esnext", "dom"],
-        "allowJs": true,
-        "resolveJsonModule": true,
-        "esModuleInterop": true
-    },
+  "compilerOptions": {
+    "outDir": "./build",
+    // "sourceMap": true,
+    "noImplicitAny": false,
+    "module": "commonjs",
+    "target": "es2015",
+    "types": ["node"],
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["esnext", "dom"],
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
 
-    "linterOptions": {
-        "exclude": ["**/__tests__/**"]
-    },
-    "include": ["src/**/*.ts"],
-    "exclude": ["node_modules", "**/__tests__/**"]
+  "linterOptions": {
+    "exclude": ["**/__tests__/**"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "**/__tests__/**"]
 }

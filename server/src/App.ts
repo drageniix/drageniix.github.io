@@ -46,7 +46,7 @@ class App {
     this.app.use((req, res) => {
       res.status(404).json({
         message: "Page not found.",
-        url: req.url,
+        path: req.url,
       });
     });
 
@@ -63,15 +63,20 @@ class App {
         next?: express.NextFunction
       ) => {
         const err = {
-          message: error.message || error.name || "Internal Server Error",
+          code: error.statusCode || 500,
+          path: req.url,
+          message:
+            error.message ||
+            error.name ||
+            (typeof error === "string" && error) ||
+            "Internal Server Error",
           data: error.data,
         };
-        logger.error(`${req.url} ${err.message}`);
-        res.status(error.statusCode || 500).json(err);
+        logger.error(`${req.url} ---- ${err.code} --- ${err.message}`);
+        res.status(err.code).json(err);
       }
     );
   }
 }
 
-const app = new App();
-export default app.app;
+export default App;
