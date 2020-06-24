@@ -9,6 +9,10 @@ import socket from "./middleware/socket";
     require("dotenv").config();
   }
 
+  if (!process.env.NODE_ENV) {
+    throw "No Environmentt Set!";
+  }
+
   const { app } = new App();
   const port = process.env.PORT;
   const server = http.createServer(app);

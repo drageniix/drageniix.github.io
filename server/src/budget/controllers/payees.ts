@@ -11,3 +11,13 @@ export const getPayees = async (
       res.status(200).json(payees.map((payee) => payee.getFormattedResponse()))
     )
     .catch((err) => next(err));
+
+export const postPayee = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  new BudgetTransactionPayee({ explicit: req.body })
+    .post()
+    .then((payee) => res.status(200).json(payee.getFormattedResponse()))
+    .catch((err) => next(err));

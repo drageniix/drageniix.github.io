@@ -13,3 +13,13 @@ export const getAccounts = async (
         .json(accounts.map((account) => account.getFormattedResponse()))
     )
     .catch((err) => next(err));
+
+export const postAccount = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  new BudgetAccount({ explicit: req.body })
+    .post()
+    .then((account) => res.status(200).json(account.getFormattedResponse()))
+    .catch((err) => next(err));

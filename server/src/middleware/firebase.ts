@@ -1,40 +1,6 @@
-import admin, { firestore } from "firebase-admin";
+import admin from "firebase-admin";
 
 let db: FirebaseFirestore.Firestore;
-
-export enum CollectionTypes {
-  PAYEES = "payees",
-  ACCOUNTS = "accounts",
-  CATEGORIES = "categories",
-  CATEGORY_GROUPS = "category_groups",
-  MONTHS = "months",
-  MONTH_CATEGORIES = "categories",
-}
-
-export interface FirebaseModel {
-  id?: firestore.DocumentReference;
-
-  getFormattedResponse: () => {
-    [key: string]: string | boolean | number | Date;
-  };
-  toFireStore: () => {
-    [key: string]:
-      | string
-      | boolean
-      | number
-      | Date
-      | firestore.CollectionReference
-      | firestore.DocumentReference;
-  };
-
-  setLinkedValues: (linkedValues: { [key: string]: string }) => void;
-
-  delete: () => Promise<firestore.WriteResult>;
-
-  update: () => Promise<firestore.WriteResult>;
-
-  post: (parentId: string) => Promise<firestore.DocumentReference>;
-}
 
 export default {
   init: (): void => {
@@ -42,7 +8,7 @@ export default {
 
     admin.initializeApp({
       credential: admin.credential.cert(config),
-      databaseURL: process.env.FIREBASE_DATABASE_URL,
+      databaseURL: `"https://${config.project_id}.firebaseio.com`,
     });
 
     db = admin.firestore();

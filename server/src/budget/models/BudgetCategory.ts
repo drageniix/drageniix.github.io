@@ -1,7 +1,8 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FirebaseModel } from "../middleware/firebase";
+import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import { filterUndefinedProperties } from "../res/util";
 
-export default class BudgetCategory implements FirebaseModel {
+export default class BudgetCategory extends FireBaseModel {
   id?: firestore.DocumentReference;
   goalCreationMonth?: Date;
   goalTarget?: number;
@@ -11,7 +12,7 @@ export default class BudgetCategory implements FirebaseModel {
   groupName?: string;
   hidden: boolean;
   name: string;
-  note: string;
+  note?: string;
 
   constructor({
     explicit,
@@ -20,6 +21,11 @@ export default class BudgetCategory implements FirebaseModel {
     explicit?: BudgetCategoryInternalProperties;
     snapshot?: firestore.DocumentSnapshot;
   }) {
+    super({
+      explicit,
+      snapshot,
+    });
+
     const {
       goalCreationMonth,
       goalTarget,
@@ -32,21 +38,22 @@ export default class BudgetCategory implements FirebaseModel {
       note,
     } = explicit || snapshot.data();
 
-    this.id = explicit.id || snapshot.ref;
-    this.goalCreationMonth = goalCreationMonth;
-    this.goalTarget = goalTarget;
-    this.goalTargetMonth = goalTargetMonth;
+    this.goalCreationMonth =
+      (snapshot && goalCreationMonth.toDate()) || goalCreationMonth;
+    this.goalTarget = goalTarget || 0;
+    this.goalTargetMonth =
+      (snapshot && goalTargetMonth.toDate()) || goalTargetMonth;
     this.goalType = goalType;
     this.groupId = groupId;
     this.groupName = groupName;
-    this.hidden = hidden;
+    this.hidden = hidden || false;
     this.name = name;
     this.note = note;
   }
 
   getFormattedResponse(): BudgetCategoryDisplayProperties {
-    return {
-      id: this.id.id,
+    return filterUndefinedProperties({
+      id: this.id && this.id.id,
       goalCreationMonth: this.goalCreationMonth,
       goalTarget: this.goalTarget,
       goalTargetMonth: this.goalTargetMonth,
@@ -56,11 +63,11 @@ export default class BudgetCategory implements FirebaseModel {
       hidden: this.hidden,
       name: this.name,
       note: this.note,
-    };
+    });
   }
 
   toFireStore(): BudgetCategoryInternalProperties {
-    return {
+    return filterUndefinedProperties({
       goalCreationMonth: this.goalCreationMonth,
       goalTarget: this.goalTarget,
       goalTargetMonth: this.goalTargetMonth,
@@ -69,26 +76,16 @@ export default class BudgetCategory implements FirebaseModel {
       hidden: this.hidden,
       name: this.name,
       note: this.note,
-    };
+    });
   }
 
   setLinkedValues({ groupName }: { groupName: string }): void {
     this.groupName = groupName || this.groupName;
   }
 
-  async delete(): Promise<firestore.WriteResult> {
-    return this.id.delete();
-  }
-
-  async update(): Promise<firestore.WriteResult> {
-    return this.id.update(this.toFireStore());
-  }
-
-  async post(): Promise<firestore.DocumentReference> {
-    return (this.id = await db
-      .getDB()
-      .collection(CollectionTypes.CATEGORIES)
-      .add(this.toFireStore()));
+  async post(): Promise<BudgetCategory> {
+    await super.post(db.getDB().collection(CollectionTypes.CATEGORIES));
+    return this;
   }
 
   static async getAllCategories(): Promise<BudgetCategory[]> {
@@ -108,11 +105,11 @@ type BudgetCategoryInternalProperties = {
   goalTarget?: number;
   goalTargetMonth?: Date;
   goalType?: string;
-  groupId: firestore.DocumentReference;
+  groupId?: firestore.DocumentReference;
   groupName?: string;
-  hidden: boolean;
-  name: string;
-  note: string;
+  hidden?: boolean;
+  name?: string;
+  note?: string;
 };
 
 type BudgetCategoryDisplayProperties = {
@@ -121,9 +118,9 @@ type BudgetCategoryDisplayProperties = {
   goalTarget?: number;
   goalTargetMonth?: Date;
   goalType?: string;
-  groupId: string;
+  groupId?: string;
   groupName?: string;
-  hidden: boolean;
-  name: string;
-  note: string;
+  hidden?: boolean;
+  name?: string;
+  note?: string;
 };

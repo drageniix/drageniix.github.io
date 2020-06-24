@@ -1,8 +1,8 @@
 import express = require("express");
 import { json, urlencoded } from "body-parser";
+import budgetRoutes from "./budget/routes";
 import logger from "./middleware/logger";
 import io from "./middleware/socket";
-import budgetRoutes from "./routes/budget";
 
 class App {
   public app: express.Application;
@@ -58,7 +58,7 @@ class App {
           message?: string;
           name?: string;
           data?: any;
-          url?: string;
+          path?: string;
         },
         req?: express.Request,
         res?: express.Response,
@@ -66,7 +66,7 @@ class App {
       ) => {
         const err = {
           code: error.statusCode || 500,
-          path: error.url || req.url,
+          path: error.path || req.url,
           message:
             error.message ||
             error.name ||
@@ -74,7 +74,7 @@ class App {
             "Internal Server Error",
           data: error.data,
         };
-        logger.error(`${req.url} ---- ${err.code} --- ${err.message}`);
+        logger.error(`STATUS ${err.code}: ${req.url} --- ${err.message}`);
         res.status(err.code).json(err);
       }
     );

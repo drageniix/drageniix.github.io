@@ -1,0 +1,164 @@
+import { firestore } from "firebase-admin";
+import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import { filterUndefinedProperties } from "../res/util";
+
+export default class BudgetScheduledTransaction extends FireBaseModel {
+  id: firestore.DocumentReference;
+  dateFirst: Date;
+  dateNext: Date;
+  frequency: string;
+  amount: number;
+  memo?: string;
+  flagColor: string;
+  accountId: firestore.DocumentReference;
+  accountName?: string;
+  payeeId: firestore.DocumentReference;
+  payeeName?: string;
+  categoryId?: firestore.DocumentReference;
+  categoryName?: string;
+  transferAccountId?: firestore.DocumentReference;
+  transferAccountName?: string;
+
+  constructor({
+    explicit,
+    snapshot,
+  }: {
+    explicit?: BudgetScheduledTransactionInternalProperties;
+    snapshot?: firestore.DocumentSnapshot;
+  }) {
+    super({
+      explicit,
+      snapshot,
+    });
+
+    const {
+      dateFirst,
+      dateNext,
+      frequency,
+      amount,
+      memo,
+      flagColor,
+      accountId,
+      accountName,
+      payeeId,
+      payeeName,
+      categoryId,
+      categoryName,
+      transferAccountId,
+      transferAccountName,
+    } = explicit || snapshot.data();
+
+    this.dateFirst =
+      (snapshot && dateFirst.toDate()) || dateFirst || new Date();
+    this.dateNext = (snapshot && dateNext.toDate()) || dateNext || new Date();
+    this.amount = amount || 0;
+    this.memo = memo;
+    this.frequency = frequency || "never";
+    this.flagColor = flagColor;
+    this.accountId = accountId;
+    this.accountName = accountName;
+    this.payeeId = payeeId;
+    this.payeeName = payeeName;
+    this.categoryId = categoryId;
+    this.categoryName = categoryName;
+    this.transferAccountId = transferAccountId;
+    this.transferAccountName = transferAccountName;
+  }
+
+  getFormattedResponse(): BudgetScheduledTransactionDisplayProperties {
+    return filterUndefinedProperties({
+      dateFirst: this.dateFirst,
+      dateNext: this.dateNext,
+      amount: this.amount,
+      memo: this.memo,
+      frequency: this.frequency,
+      flagColor: this.flagColor,
+      accountId: this.accountId.id,
+      accountName: this.accountName,
+      payeeId: this.payeeId.id,
+      payeeName: this.payeeName,
+      categoryId: this.categoryId.id,
+      transferAccountId: this.transferAccountId.id,
+      transferAccountName: this.transferAccountName,
+      categoryName: this.categoryName,
+    });
+  }
+
+  toFireStore(): BudgetScheduledTransactionInternalProperties {
+    return filterUndefinedProperties({
+      dateFirst: this.dateFirst,
+      dateNext: this.dateNext,
+      amount: this.amount,
+      memo: this.memo,
+      frequency: this.frequency,
+      flagColor: this.flagColor,
+      accountId: this.accountId,
+      accountName: this.accountName,
+      payeeId: this.payeeId,
+      payeeName: this.payeeName,
+      categoryId: this.categoryId,
+      categoryName: this.categoryName,
+      transferAccountId: this.transferAccountId,
+      transferAccountName: this.transferAccountName,
+    });
+  }
+
+  setLinkedValues(): void {
+    return;
+  }
+
+  async post(): Promise<BudgetScheduledTransaction> {
+    await super.post(
+      db.getDB().collection(CollectionTypes.SCHEDULED_TRANSACTIONS)
+    );
+    return this;
+  }
+
+  static async getAllTransactions(): Promise<BudgetScheduledTransaction[]> {
+    return db
+      .getDB()
+      .collection(CollectionTypes.SCHEDULED_TRANSACTIONS)
+      .get()
+      .then((scheduledTransactions) =>
+        scheduledTransactions.docs.map(
+          (snapshot) => new BudgetScheduledTransaction({ snapshot })
+        )
+      );
+  }
+}
+
+export type BudgetScheduledTransactionInternalProperties = {
+  id?: firestore.DocumentReference;
+  dateFirst?: Date;
+  dateNext?: Date;
+  frequency?: string;
+  amount?: number;
+  memo?: string;
+  flagColor?: string;
+  accountId?: firestore.DocumentReference;
+  payeeId?: firestore.DocumentReference;
+  categoryId?: firestore.DocumentReference;
+  transferAccountId?: firestore.DocumentReference;
+  accountName?: string;
+  payeeName?: string;
+  categoryName?: string;
+  transferAccountName?: string;
+};
+
+export type BudgetScheduledTransactionDisplayProperties = {
+  id?: string;
+  dateFirst?: Date;
+  dateNext?: Date;
+  frequency?: string;
+  amount?: number;
+  memo?: string;
+  flagColor?: string;
+  accountId?: string;
+  payeeId?: string;
+  categoryId?: string;
+  transferAccountId?: string;
+  accountName?: string;
+  payeeName?: string;
+  categoryName?: string;
+  transferAccountName?: string;
+};

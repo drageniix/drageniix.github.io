@@ -1,10 +1,11 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FirebaseModel } from "../middleware/firebase";
+import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import { filterUndefinedProperties } from "../res/util";
 
-export default class BudgetCategoryGroup implements FirebaseModel {
+export default class BudgetCategoryGroup extends FireBaseModel {
   id?: firestore.DocumentReference;
   name: string;
-  note: string;
+  note?: string;
   hidden: boolean;
 
   constructor({
@@ -14,48 +15,42 @@ export default class BudgetCategoryGroup implements FirebaseModel {
     explicit?: BudgetCategoryGroupInternalProperties;
     snapshot?: firestore.DocumentSnapshot;
   }) {
+    super({
+      explicit,
+      snapshot,
+    });
+
     const { name, note, hidden } = explicit || snapshot.data();
 
-    this.id = explicit.id || snapshot.ref;
     this.name = name;
     this.note = note;
-    this.hidden = hidden;
+    this.hidden = hidden || false;
   }
 
   toFireStore(): BudgetCategoryGroupInternalProperties {
-    return {
+    return filterUndefinedProperties({
       name: this.name,
       note: this.note,
       hidden: this.hidden,
-    };
+    });
   }
 
   getFormattedResponse(): BudgetCategoryGroupDisplayProperties {
-    return {
-      id: this.id.id,
+    return filterUndefinedProperties({
+      id: this.id && this.id.id,
       name: this.name,
       note: this.note,
       hidden: this.hidden,
-    };
+    });
   }
 
   setLinkedValues(): void {
     return;
   }
 
-  async delete(): Promise<firestore.WriteResult> {
-    return this.id.delete();
-  }
-
-  async update(): Promise<firestore.WriteResult> {
-    return this.id.update(this.toFireStore());
-  }
-
-  async post(): Promise<firestore.DocumentReference> {
-    return (this.id = await db
-      .getDB()
-      .collection(CollectionTypes.CATEGORY_GROUPS)
-      .add(this.toFireStore()));
+  async post(): Promise<BudgetCategoryGroup> {
+    await super.post(db.getDB().collection(CollectionTypes.CATEGORY_GROUPS));
+    return this;
   }
 
   static async getAllCategoryGroups(): Promise<BudgetCategoryGroup[]> {
@@ -73,14 +68,14 @@ export default class BudgetCategoryGroup implements FirebaseModel {
 
 type BudgetCategoryGroupInternalProperties = {
   id?: firestore.DocumentReference;
-  name: string;
-  note: string;
-  hidden: boolean;
+  name?: string;
+  note?: string;
+  hidden?: boolean;
 };
 
 type BudgetCategoryGroupDisplayProperties = {
   id?: string;
-  name: string;
-  note: string;
-  hidden: boolean;
+  name?: string;
+  note?: string;
+  hidden?: boolean;
 };

@@ -1,7 +1,8 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FirebaseModel } from "../middleware/firebase";
+import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import { filterUndefinedProperties } from "../res/util";
 
-export default class BudgetMonthCategory implements FirebaseModel {
+export default class BudgetMonthCategory extends FireBaseModel {
   id: firestore.DocumentReference;
   activity: number;
   budgeted: number;
@@ -16,57 +17,44 @@ export default class BudgetMonthCategory implements FirebaseModel {
     explicit?: BudgetMonthCategoryInternalProperties;
     snapshot?: firestore.DocumentSnapshot;
   }) {
+    super({
+      explicit,
+      snapshot,
+    });
+
     const { activity, budgeted, balance, categoryId, categoryName } =
       explicit || snapshot.data();
 
-    this.id = explicit.id || snapshot.ref;
-    this.activity = activity;
-    this.balance = balance;
-    this.budgeted = budgeted;
+    this.activity = activity || 0;
+    this.balance = balance || 0;
+    this.budgeted = budgeted || 0;
     this.categoryId = categoryId;
     this.categoryName = categoryName;
   }
 
   getFormattedResponse(): BudgetMonthCategoryDisplayProperties {
-    return {
-      id: this.id.id,
+    return filterUndefinedProperties({
+      id: this.id && this.id.id,
       activity: this.activity,
       budgeted: this.budgeted,
       balance: this.balance,
-      categoryId: this.categoryId.id,
+      categoryId: this.categoryId && this.categoryId.id,
       categoryName: this.categoryName,
-    };
+    });
   }
 
   toFireStore(): BudgetMonthCategoryInternalProperties {
-    return {
+    return filterUndefinedProperties({
       activity: this.activity,
       budgeted: this.budgeted,
       balance: this.balance,
       categoryId: this.categoryId,
       categoryName: this.categoryName,
-    };
+    });
   }
 
   setLinkedValues({ categoryName }: { categoryName: string }): void {
     this.categoryName = categoryName || this.categoryName;
-  }
-
-  async delete(): Promise<firestore.WriteResult> {
-    return this.id.delete();
-  }
-
-  async update(): Promise<firestore.WriteResult> {
-    return this.id.update(this.toFireStore());
-  }
-
-  async post(monthId: string): Promise<firestore.DocumentReference> {
-    return (this.id = await db
-      .getDB()
-      .collection(CollectionTypes.MONTHS)
-      .doc(monthId)
-      .collection(CollectionTypes.MONTH_CATEGORIES)
-      .add(this.toFireStore()));
   }
 
   static async getAllMonthCategories(
@@ -86,18 +74,18 @@ export default class BudgetMonthCategory implements FirebaseModel {
 
 type BudgetMonthCategoryInternalProperties = {
   id?: firestore.DocumentReference;
-  activity: number;
-  budgeted: number;
-  balance: number;
-  categoryId: firestore.DocumentReference;
-  categoryName: string;
+  activity?: number;
+  budgeted?: number;
+  balance?: number;
+  categoryId?: firestore.DocumentReference;
+  categoryName?: string;
 };
 
 type BudgetMonthCategoryDisplayProperties = {
   id?: string;
-  activity: number;
-  budgeted: number;
-  balance: number;
-  categoryId: string;
-  categoryName: string;
+  activity?: number;
+  budgeted?: number;
+  balance?: number;
+  categoryId?: string;
+  categoryName?: string;
 };

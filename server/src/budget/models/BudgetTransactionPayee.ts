@@ -1,10 +1,11 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FirebaseModel } from "../middleware/firebase";
+import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import { filterUndefinedProperties } from "../res/util";
 
-export default class BudgetTransactionPayee implements FirebaseModel {
+export default class BudgetTransactionPayee extends FireBaseModel {
   id: firestore.DocumentReference;
   name: string;
-  note: string;
+  note?: string;
   transferAccountId: firestore.DocumentReference;
   transferAccountName: string;
 
@@ -15,10 +16,14 @@ export default class BudgetTransactionPayee implements FirebaseModel {
     explicit?: BudgetPayeeInternalProperties;
     snapshot?: firestore.DocumentSnapshot;
   }) {
-    const { name, note, transferAccountId, transferAccountName } =
-      explicit || snapshot.data();
+    super({
+      explicit,
+      snapshot,
+    });
 
-    this.id = explicit.id || snapshot.ref;
+    const { name, note, transferAccountId, transferAccountName } =
+      explicit || (snapshot && snapshot.data());
+
     this.name = name;
     this.note = note;
     this.transferAccountId = transferAccountId;
@@ -26,46 +31,38 @@ export default class BudgetTransactionPayee implements FirebaseModel {
   }
 
   getFormattedResponse(): BudgetPayeeDisplayProperties {
-    return {
-      id: this.id.id,
+    return filterUndefinedProperties({
+      id: this.id && this.id.id,
       name: this.name,
       note: this.note,
-      transferAccountId: this.transferAccountId.id,
+      transferAccountId: this.transferAccountId && this.transferAccountId.id,
       transferAccountName: this.transferAccountName,
-    };
+    });
   }
 
   toFireStore(): BudgetPayeeInternalProperties {
-    return {
+    return filterUndefinedProperties({
       name: this.name,
       note: this.note,
       transferAccountId: this.transferAccountId,
       transferAccountName: this.transferAccountName,
-    };
+    });
   }
 
   setLinkedValues({
     transferAccountName,
+    transferAccountId,
   }: {
-    transferAccountName: string;
+    transferAccountName?: string;
+    transferAccountId?: firestore.DocumentReference;
   }): void {
     this.transferAccountName = transferAccountName || this.transferAccountName;
+    this.transferAccountId = transferAccountId || this.transferAccountId;
   }
 
-  async delete(): Promise<firestore.WriteResult> {
-    return this.id.delete();
-  }
-
-  async update(): Promise<firestore.WriteResult> {
-    return this.id.update(this.toFireStore());
-  }
-
-  async post(): Promise<firestore.DocumentReference> {
-    //needs to be connected to an account
-    return (this.id = await db
-      .getDB()
-      .collection(CollectionTypes.PAYEES)
-      .add(this.toFireStore()));
+  async post(): Promise<BudgetTransactionPayee> {
+    await super.post(db.getDB().collection(CollectionTypes.PAYEES));
+    return this;
   }
 
   static async getAllPayees(): Promise<BudgetTransactionPayee[]> {
@@ -81,16 +78,16 @@ export default class BudgetTransactionPayee implements FirebaseModel {
 
 type BudgetPayeeInternalProperties = {
   id?: firestore.DocumentReference;
-  name: string;
-  note: string;
+  name?: string;
+  note?: string;
   transferAccountId?: firestore.DocumentReference<firestore.DocumentData>;
   transferAccountName?: string;
 };
 
 type BudgetPayeeDisplayProperties = {
-  id: string;
-  name: string;
-  note: string;
+  id?: string;
+  name?: string;
+  note?: string;
   transferAccountId?: string;
   transferAccountName?: string;
 };

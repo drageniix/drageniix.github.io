@@ -1,13 +1,15 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FirebaseModel } from "../middleware/firebase";
+import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import { filterUndefinedProperties } from "../res/util";
+import BudgetCategory from "./BudgetCategory";
 
-export default class BudgetMonth implements FirebaseModel {
+export default class BudgetMonth extends FireBaseModel {
   id: firestore.DocumentReference;
   activity: number;
   available: number;
   budgeted: number;
-  date: Date;
   income: number;
+  date: Date;
   overBudget: number;
   categories: firestore.CollectionReference;
 
@@ -18,6 +20,11 @@ export default class BudgetMonth implements FirebaseModel {
     explicit?: BudgetMonthInternalProperties;
     snapshot?: firestore.DocumentSnapshot;
   }) {
+    super({
+      explicit,
+      snapshot,
+    });
+
     const {
       activity,
       available,
@@ -28,59 +35,52 @@ export default class BudgetMonth implements FirebaseModel {
       categories,
     } = explicit || snapshot.data();
 
-    this.id = explicit.id || snapshot.ref;
-    this.activity = activity;
-    this.available = available;
-    this.budgeted = budgeted;
-    this.date = date;
-    this.income = income;
-    this.overBudget = overBudget;
+    this.date = (snapshot && date.toDate()) || date;
+    this.activity = activity || 0;
+    this.available = available || 0;
+    this.budgeted = budgeted || 0;
+    this.income = income || 0;
+    this.overBudget = overBudget || 0;
     this.categories = categories;
   }
 
   getFormattedResponse(): BudgetMonthDisplayProperties {
-    return {
-      id: this.id.id,
+    return filterUndefinedProperties({
+      id: this.id && this.id.id,
+      date: this.date,
       activity: this.activity,
       available: this.available,
       budgeted: this.budgeted,
-      date: this.date,
       income: this.income,
       overBudget: this.overBudget,
-      categories: this.categories.id,
-    };
+      categories: this.categories && this.categories.id,
+    });
   }
 
   toFireStore(): BudgetMonthInternalProperties {
-    return {
+    return filterUndefinedProperties({
+      date: this.date,
       activity: this.activity,
       available: this.available,
       budgeted: this.budgeted,
-      date: this.date,
       income: this.income,
       overBudget: this.overBudget,
       categories: this.categories,
-    };
+    });
   }
 
   setLinkedValues(): void {
     return null;
   }
 
-  async delete(): Promise<firestore.WriteResult> {
-    return this.id.delete();
-  }
+  async post(): Promise<BudgetMonth> {
+    // TODO: generate all month categories
+    await super.post(db.getDB().collection(CollectionTypes.MONTHS));
 
-  async update(): Promise<firestore.WriteResult> {
-    return this.id.update(this.toFireStore());
-  }
+    const allCategories = await BudgetCategory.getAllCategories();
+    allCategories.forEach((category) => {});
 
-  async post(): Promise<firestore.DocumentReference> {
-    //needs to create a payee first
-    return (this.id = await db
-      .getDB()
-      .collection(CollectionTypes.MONTHS)
-      .add(this.toFireStore()));
+    return this;
   }
 
   static async getAllAccounts(): Promise<BudgetMonth[]> {
@@ -96,22 +96,22 @@ export default class BudgetMonth implements FirebaseModel {
 
 type BudgetMonthInternalProperties = {
   id?: firestore.DocumentReference;
-  activity: number;
-  available: number;
-  budgeted: number;
-  date: Date;
-  income: number;
-  overBudget: number;
-  categories: firestore.CollectionReference;
+  activity?: number;
+  available?: number;
+  budgeted?: number;
+  date?: Date;
+  income?: number;
+  overBudget?: number;
+  categories?: firestore.CollectionReference;
 };
 
 type BudgetMonthDisplayProperties = {
   id?: string;
-  activity: number;
-  available: number;
-  budgeted: number;
-  date: Date;
-  income: number;
-  overBudget: number;
-  categories: string;
+  activity?: number;
+  available?: number;
+  budgeted?: number;
+  date?: Date;
+  income?: number;
+  overBudget?: number;
+  categories?: string;
 };
