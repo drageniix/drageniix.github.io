@@ -117,7 +117,7 @@ export default class BudgetTransaction extends FireBaseModel {
     this.categoryName = categoryName || this.categoryName;
   }
 
-  async updateCategoryAmount(amount: number): Promise<BudgetMonthCategory> {
+  async updateCategoryAmount(amount: number): Promise<BudgetTransaction> {
     const month = await BudgetMonth.getMonth({ date: this.date });
     const category = await BudgetCategory.getCategory(this.categoryId);
     const monthCategory = await BudgetMonthCategory.getMonthCategory({
@@ -125,14 +125,19 @@ export default class BudgetTransaction extends FireBaseModel {
       category,
     });
 
-    return monthCategory.updateActivity(this.amount > 0, amount);
+    await monthCategory.updateActivity(this.amount > 0, amount);
+    this.categoryId = monthCategory.categoryId;
+    this.categoryName = monthCategory.categoryName;
+    return this.update();
   }
 
-  async updateAccountAmount(amount: number): Promise<BudgetAccount> {
+  async updateAccountAmount(amount: number): Promise<BudgetTransaction> {
     const account = await BudgetAccount.getAccount(this.accountId);
     account.balance += amount;
     await account.update();
-    return account;
+    this.accountId = account.id;
+    this.accountName = account.name;
+    return this.update();
   }
 
   async updateAmount(amount: number): Promise<BudgetTransaction> {
@@ -149,15 +154,27 @@ export default class BudgetTransaction extends FireBaseModel {
     return this.update();
   }
 
+  async updatePayee(
+    payeeId: documentReferenceType
+  ): Promise<BudgetTransaction> {
+    const payee = await BudgetTransactionPayee.getPayee(payeeId);
+    this.payeeId = payee.id;
+    this.payeeName = payee.name;
+    return this.update();
+  }
+
   async updateTransaction({
     amount,
     date,
+    payee,
   }: {
     amount?: number;
     date?: Date;
+    payee?: documentReferenceType;
   }): Promise<BudgetTransaction> {
     amount && (await this.updateAmount(amount));
     date && (await this.updateDate(date));
+    payee && (await this.updatePayee(payee));
     return this;
   }
 
@@ -168,21 +185,15 @@ export default class BudgetTransaction extends FireBaseModel {
 
   async post(): Promise<BudgetTransaction> {
     if (this.accountId) {
-      const account = await this.updateAccountAmount(this.amount);
-      this.accountId = account.id;
-      this.accountName = account.name;
+      await this.updateAccountAmount(this.amount);
     }
 
     if (this.payeeId) {
-      const payee = await BudgetTransactionPayee.getPayee(this.payeeId);
-      this.payeeId = payee.id;
-      this.payeeName = payee.name;
+      await this.updatePayee(this.payeeId);
     }
 
     if (this.categoryId) {
-      const monthCategory = await this.updateCategoryAmount(this.amount);
-      this.categoryId = monthCategory.categoryId;
-      this.categoryName = monthCategory.categoryName;
+      await this.updateCategoryAmount(this.amount);
     }
 
     await super.post(db.getDB().collection(CollectionTypes.TRANSACTIONS));

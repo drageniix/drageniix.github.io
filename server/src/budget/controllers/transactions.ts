@@ -46,7 +46,13 @@ export const putTransaction = async (
   next: express.NextFunction
 ): Promise<void | express.Response> =>
   BudgetTransaction.getTransaction(req.params.transactionId)
-    .then((transaction) => transaction.updateTransaction(req.body))
+    .then((transaction) =>
+      transaction.updateTransaction({
+        amount: req.body.amount,
+        date: req.body.date,
+        payee: req.body.payeeId,
+      })
+    )
     .then((transaction) =>
       res.status(200).json(transaction.getFormattedResponse())
     )
