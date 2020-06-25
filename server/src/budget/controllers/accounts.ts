@@ -24,6 +24,15 @@ export const postAccount = async (
     .then((account) => res.status(200).json(account.getFormattedResponse()))
     .catch((err) => next(err));
 
+export const getAccount = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  BudgetAccount.getAccount(req.params.accountId)
+    .then((account) => res.status(200).json(account.getFormattedResponse()))
+    .catch((err) => next(err));
+
 export const putAccount = async (
   req: express.Request,
   res: express.Response,

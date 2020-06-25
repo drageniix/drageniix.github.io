@@ -24,6 +24,15 @@ export const postCategory = async (
     .then((category) => res.status(200).json(category.getFormattedResponse()))
     .catch((err) => next(err));
 
+export const getCategory = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  BudgetCategory.getCategory(req.params.categoryId)
+    .then((category) => res.status(200).json(category.getFormattedResponse()))
+    .catch((err) => next(err));
+
 export const putCategory = async (
   req: express.Request,
   res: express.Response,

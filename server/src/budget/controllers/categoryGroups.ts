@@ -30,6 +30,17 @@ export const postCategoryGroup = async (
     )
     .catch((err) => next(err));
 
+export const getCategoryGroup = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  BudgetCategoryGroup.getCategoryGroup(req.params.categoryGroupId)
+    .then((categoryGroup) =>
+      res.status(200).json(categoryGroup.getFormattedResponse())
+    )
+    .catch((err) => next(err));
+
 export const putCategoryGroup = async (
   req: express.Request,
   res: express.Response,

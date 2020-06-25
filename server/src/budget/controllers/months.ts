@@ -21,3 +21,15 @@ export const postMonth = async (
     .post()
     .then((month) => res.status(200).json(month.getFormattedResponse()))
     .catch((err) => next(err));
+
+export const getMonth = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  BudgetMonth.getMonth({
+    ref: req.params.monthId,
+    date: req.params.monthId === "current" && new Date(),
+  })
+    .then((month) => res.status(200).json(month.getFormattedResponse()))
+    .catch((err) => next(err));

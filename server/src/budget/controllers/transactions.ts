@@ -28,6 +28,18 @@ export const postTransaction = async (
     )
     .catch((err) => next(err));
 
+export const getTransaction = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  BudgetTransaction.getTransaction(req.params.transactionId)
+
+    .then((transaction) =>
+      res.status(200).json(transaction.getFormattedResponse())
+    )
+    .catch((err) => next(err));
+
 export const putTransaction = async (
   req: express.Request,
   res: express.Response,

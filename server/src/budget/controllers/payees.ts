@@ -22,6 +22,15 @@ export const postPayee = async (
     .then((payee) => res.status(200).json(payee.getFormattedResponse()))
     .catch((err) => next(err));
 
+export const getPayee = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  BudgetTransactionPayee.getPayee(req.params.payeeId)
+    .then((payee) => res.status(200).json(payee.getFormattedResponse()))
+    .catch((err) => next(err));
+
 export const putPayee = async (
   req: express.Request,
   res: express.Response,
