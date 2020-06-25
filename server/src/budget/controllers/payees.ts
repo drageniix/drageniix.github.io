@@ -21,3 +21,13 @@ export const postPayee = async (
     .post()
     .then((payee) => res.status(200).json(payee.getFormattedResponse()))
     .catch((err) => next(err));
+
+export const putPayee = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  BudgetTransactionPayee.getPayee(req.params.payeeId)
+    .then((payee) => payee.updatePayee({ name: req.body.name }))
+    .then((payee) => res.status(200).json(payee.getFormattedResponse()))
+    .catch((err) => next(err));

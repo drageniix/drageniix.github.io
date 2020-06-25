@@ -75,8 +75,15 @@ export default class BudgetTransactionPayee extends FireBaseModel {
     return this;
   }
 
-  async updateName(newName: string): Promise<BudgetTransactionPayee> {
-    this.name = newName;
+  async updateName(name: string): Promise<BudgetTransactionPayee> {
+    this.name = name;
+
+    if (this.transferAccountId) {
+      await BudgetAccount.getAccount(this.transferAccountId).then((account) => {
+        account.setLinkedValues({ transferPayeeName: this.name });
+        return account.update();
+      });
+    }
 
     await BudgetTransaction.getAllTransactions({
       payee: this,
@@ -91,14 +98,16 @@ export default class BudgetTransactionPayee extends FireBaseModel {
       )
     );
 
-    if (this.transferAccountId) {
-      await BudgetAccount.getAccount(this.transferAccountId).then((account) => {
-        account.setLinkedValues({ transferPayeeName: this.name });
-        return account.update();
-      });
-    }
-
     return this.update();
+  }
+
+  async updatePayee({
+    name,
+  }: {
+    name: string;
+  }): Promise<BudgetTransactionPayee> {
+    name && (await this.updateName(name));
+    return this;
   }
 
   static async getAllPayees(): Promise<BudgetTransactionPayee[]> {

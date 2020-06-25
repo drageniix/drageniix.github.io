@@ -11,6 +11,7 @@ export default class BudgetCategory extends FireBaseModel {
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;
+  goalPriority?: number;
   goalType?: string;
   groupId: firestore.DocumentReference | string;
   groupName?: string;
@@ -35,6 +36,7 @@ export default class BudgetCategory extends FireBaseModel {
       goalTarget,
       goalTargetMonth,
       goalType,
+      goalPriority,
       groupId,
       groupName,
       active,
@@ -50,6 +52,7 @@ export default class BudgetCategory extends FireBaseModel {
       (snapshot && goalTargetMonth && goalTargetMonth.toDate()) ||
       (goalTargetMonth && new Date(goalTargetMonth));
     this.goalType = goalType;
+    this.goalPriority = goalPriority;
     this.groupId = groupId;
     this.groupName = groupName;
     this.active = active || true;
@@ -64,6 +67,7 @@ export default class BudgetCategory extends FireBaseModel {
       goalTarget: this.goalTarget,
       goalTargetMonth: this.goalTargetMonth,
       goalType: this.goalType,
+      goalPriority: this.goalPriority,
       groupId:
         (typeof this.groupId === "object" && this.groupId.id) || this.groupId,
       groupName: this.groupName,
@@ -79,6 +83,7 @@ export default class BudgetCategory extends FireBaseModel {
       goalTarget: this.goalTarget,
       goalTargetMonth: this.goalTargetMonth,
       goalType: this.goalType,
+      goalPriority: this.goalPriority,
       groupId: this.groupId,
       groupName: this.groupName,
       active: this.active,
@@ -108,9 +113,13 @@ export default class BudgetCategory extends FireBaseModel {
     return this;
   }
 
-  async updateName(newName: string): Promise<void> {
-    this.name = newName;
-    await this.update();
+  async updateCategory({ name }: { name: string }): Promise<BudgetCategory> {
+    name && (await this.updateName(name));
+    return this;
+  }
+
+  async updateName(name: string): Promise<BudgetCategory> {
+    this.name = name;
 
     await BudgetTransaction.getAllTransactions({
       category: this,
@@ -129,25 +138,35 @@ export default class BudgetCategory extends FireBaseModel {
       .then((months) =>
         Promise.all(
           months.map((month) =>
-            BudgetMonthCategory.getAllMonthCategories({ month, category: this })
+            BudgetMonthCategory.getMonthCategory({ month, category: this })
           )
         )
       )
-      .then((budgetCateogryArrays) =>
+      .then((budgetMonthCategories) =>
         Promise.all(
-          budgetCateogryArrays.flat().map((budgetCategory) => {
+          budgetMonthCategories.map((budgetCategory) => {
             budgetCategory.setLinkedValues({ categoryName: this.name });
             return budgetCategory.update();
           })
         )
       );
+
+    return this.update();
   }
 
-  static async getAllCategories(): Promise<BudgetCategory[]> {
-    return db
+  static async getAllCategories({
+    group,
+  }: { group?: BudgetCategoryGroup } = {}): Promise<BudgetCategory[]> {
+    let query = db
       .getDB()
       .collection(CollectionTypes.CATEGORIES)
-      .where("active", "==", true)
+      .where("active", "==", true);
+
+    if (group) {
+      query = query.where("groupId", "==", group.id);
+    }
+
+    return query
       .get()
       .then((categories) =>
         categories.docs.map((snapshot) => new BudgetCategory({ snapshot }))
@@ -174,6 +193,7 @@ type BudgetCategoryInternalProperties = {
   goalTarget?: number;
   goalTargetMonth?: Date;
   goalType?: string;
+  goalPriority?: string;
   groupId?: firestore.DocumentReference;
   groupName?: string;
   active?: boolean;
@@ -187,6 +207,7 @@ type BudgetCategoryDisplayProperties = {
   goalTarget?: number;
   goalTargetMonth?: Date;
   goalType?: string;
+  goalPriority?: string;
   groupId?: string;
   groupName?: string;
   active?: boolean;

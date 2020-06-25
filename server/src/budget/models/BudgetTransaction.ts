@@ -113,24 +113,21 @@ export default class BudgetTransaction extends FireBaseModel {
   }
 
   async updateCategoryAmount(amount: number): Promise<BudgetMonthCategory> {
-    let month = await BudgetMonth.getMonth({ date: this.date });
+    const month = await BudgetMonth.getMonth({ date: this.date });
 
-    if (!month) {
-      // Create new month
-      month = await new BudgetMonth({
-        explicit: {
-          date: new Date(this.date.getFullYear(), this.date.getMonth(), 1),
-        },
-      }).post();
+    if (this.amount > 0) {
+      month.income += amount;
+    } else {
+      month.activity += amount;
     }
 
-    month.activity += amount; // todo: distinguinsh income, calculate available/over budget
     await month.update();
 
-    const months = await BudgetMonthCategory.getAllMonthCategories({ month });
-    const monthCategory = months.filter(
-      (category) => category.categoryId.id === this.categoryId
-    )[0];
+    const category = await BudgetCategory.getCategory(this.categoryId);
+    const monthCategory = await BudgetMonthCategory.getMonthCategory({
+      month,
+      category,
+    });
 
     monthCategory.activity += amount;
     monthCategory.balance = monthCategory.balance + monthCategory.activity;
@@ -151,6 +148,25 @@ export default class BudgetTransaction extends FireBaseModel {
     await this.updateCategoryAmount(-this.amount + amount);
     this.amount = amount;
     return this.update();
+  }
+
+  async updateDate(newDate: Date): Promise<BudgetTransaction> {
+    await this.updateCategoryAmount(-this.amount);
+    this.date = newDate;
+    await this.updateCategoryAmount(this.amount);
+    return this.update();
+  }
+
+  async updateTransaction({
+    amount,
+    date,
+  }: {
+    amount?: number;
+    date?: Date;
+  }): Promise<BudgetTransaction> {
+    amount && (await this.updateAmount(amount));
+    date && (await this.updateDate(date));
+    return this;
   }
 
   async update(): Promise<BudgetTransaction> {
@@ -215,6 +231,19 @@ export default class BudgetTransaction extends FireBaseModel {
     return transactions.docs.map(
       (snapshot) => new BudgetTransaction({ snapshot })
     );
+  }
+
+  static async getTransaction(
+    ref: firestore.DocumentReference | string
+  ): Promise<BudgetTransaction> {
+    const reference: firestore.DocumentReference =
+      (typeof ref === "object" && ref) ||
+      (typeof ref === "string" &&
+        db.getDB().collection(CollectionTypes.TRANSACTIONS).doc(ref));
+
+    return reference
+      .get()
+      .then((category) => new BudgetTransaction({ snapshot: category }));
   }
 }
 

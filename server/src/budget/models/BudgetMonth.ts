@@ -124,10 +124,10 @@ export default class BudgetMonth extends FireBaseModel {
         .startAt(startDate)
         .endBefore(endDate)
         .get()
-        .then(
-          (month) =>
-            month.docs.length === 1 &&
-            new BudgetMonth({ snapshot: month.docs[0] })
+        .then((month) =>
+          month.docs.length === 1
+            ? new BudgetMonth({ snapshot: month.docs[0] })
+            : new BudgetMonth({ explicit: { date: startDate } }).post()
         );
     } else if (ref) {
       const reference =

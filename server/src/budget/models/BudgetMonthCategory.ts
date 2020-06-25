@@ -1,5 +1,9 @@
 import { firestore } from "firebase-admin";
-import { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import {
+  CollectionTypes,
+  FireBaseModel,
+  firebaseStorageTypes,
+} from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
 import BudgetCategory from "./BudgetCategory";
 import BudgetMonth from "./BudgetMonth";
@@ -59,30 +63,45 @@ export default class BudgetMonthCategory extends FireBaseModel {
     this.categoryName = categoryName || this.categoryName;
   }
 
+  async getFullyPopulatedMonthCategory(): Promise<firebaseStorageTypes> {
+    const category = await BudgetCategory.getCategory(this.categoryId);
+    return filterUndefinedProperties({
+      ...this.toFireStore(),
+      ...category.toFireStore(),
+      id: this.id,
+      name: undefined,
+    });
+  }
+
   static async getAllMonthCategories({
     month,
-    category,
   }: {
     month: BudgetMonth;
-    category?: BudgetCategory;
   }): Promise<BudgetMonthCategory[]> {
-    const collection = month.id.collection(CollectionTypes.MONTH_CATEGORIES);
-    let monthCategories: firestore.QuerySnapshot;
-
-    if (category) {
-      const query: firestore.Query = collection.where(
-        "categoryId",
-        "==",
-        category.id
-      );
-      monthCategories = await query.get();
-    } else {
-      monthCategories = await collection.get();
-    }
+    const monthCategories = await month.id
+      .collection(CollectionTypes.MONTH_CATEGORIES)
+      .get();
 
     return monthCategories.docs.map(
       (category) => new BudgetMonthCategory({ snapshot: category })
     );
+  }
+
+  static async getMonthCategory({
+    month,
+    category,
+  }: {
+    month: BudgetMonth;
+    category: BudgetCategory;
+  }): Promise<BudgetMonthCategory> {
+    const monthCategories = await month.id
+      .collection(CollectionTypes.MONTH_CATEGORIES)
+      .where("categoryId", "==", category.id)
+      .get();
+
+    if (monthCategories.docs.length == 1) {
+      return new BudgetMonthCategory({ snapshot: monthCategories.docs[0] });
+    }
   }
 }
 

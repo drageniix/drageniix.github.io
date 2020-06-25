@@ -1,6 +1,7 @@
 import { firestore } from "firebase-admin";
 import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
+import BudgetCategory from "./BudgetCategory";
 
 export default class BudgetCategoryGroup extends FireBaseModel {
   id?: firestore.DocumentReference;
@@ -50,6 +51,38 @@ export default class BudgetCategoryGroup extends FireBaseModel {
 
   async post(): Promise<BudgetCategoryGroup> {
     await super.post(db.getDB().collection(CollectionTypes.CATEGORY_GROUPS));
+    return this;
+  }
+
+  async update(): Promise<BudgetCategoryGroup> {
+    await super.update();
+    return this;
+  }
+
+  async updateName(name: string): Promise<BudgetCategoryGroup> {
+    this.name = name;
+
+    await BudgetCategory.getAllCategories({
+      group: this,
+    }).then((categories) =>
+      Promise.all(
+        categories.map((category) => {
+          category.setLinkedValues({
+            groupName: this.name,
+          });
+          return category.update();
+        })
+      )
+    );
+    return this.update();
+  }
+
+  async updateCategoryGroup({
+    name,
+  }: {
+    name: string;
+  }): Promise<BudgetCategoryGroup> {
+    name && (await this.updateName(name));
     return this;
   }
 

@@ -70,8 +70,8 @@ export default class BudgetAccount extends FireBaseModel {
     this.transferPayeeName = transferPayeeName || this.transferPayeeName;
   }
 
-  async updateName(newName: string): Promise<BudgetAccount> {
-    this.name = newName;
+  async updateName(name: string): Promise<BudgetAccount> {
+    this.name = name;
 
     await BudgetTransaction.getAllTransactions({
       account: this,
@@ -108,6 +108,11 @@ export default class BudgetAccount extends FireBaseModel {
       );
 
     return this.update();
+  }
+
+  async updateAccount({ name }: { name: string }): Promise<BudgetAccount> {
+    name && (await this.updateName(name));
+    return this;
   }
 
   async update(): Promise<BudgetAccount> {

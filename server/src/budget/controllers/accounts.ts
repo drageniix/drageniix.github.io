@@ -30,6 +30,6 @@ export const putAccount = async (
   next: express.NextFunction
 ): Promise<void | express.Response> =>
   BudgetAccount.getAccount(req.params.accountId)
-    .then((account) => account.updateName(req.body.name))
+    .then((account) => account.updateAccount({ name: req.body.name }))
     .then((account) => res.status(200).json(account.getFormattedResponse()))
     .catch((err) => next(err));
