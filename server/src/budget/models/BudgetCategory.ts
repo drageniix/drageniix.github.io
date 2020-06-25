@@ -1,5 +1,10 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import db, {
+  CollectionTypes,
+  documentReferenceType,
+  FireBaseModel,
+  getDocumentReference,
+} from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
 import BudgetCategoryGroup from "./BudgetCategoryGroup";
 import BudgetMonth from "./BudgetMonth";
@@ -174,14 +179,9 @@ export default class BudgetCategory extends FireBaseModel {
   }
 
   static async getCategory(
-    ref: firestore.DocumentReference | string
+    ref: documentReferenceType
   ): Promise<BudgetCategory> {
-    const reference: firestore.DocumentReference =
-      (typeof ref === "object" && ref) ||
-      (typeof ref === "string" &&
-        db.getDB().collection(CollectionTypes.CATEGORIES).doc(ref));
-
-    return reference
+    return getDocumentReference(ref, CollectionTypes.CATEGORIES)
       .get()
       .then((category) => new BudgetCategory({ snapshot: category }));
   }

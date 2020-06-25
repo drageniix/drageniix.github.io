@@ -1,5 +1,10 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import db, {
+  CollectionTypes,
+  documentReferenceType,
+  FireBaseModel,
+  getDocumentReference,
+} from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
 import BudgetAccount from "./BudgetAccount";
 import BudgetCategory from "./BudgetCategory";
@@ -114,26 +119,13 @@ export default class BudgetTransaction extends FireBaseModel {
 
   async updateCategoryAmount(amount: number): Promise<BudgetMonthCategory> {
     const month = await BudgetMonth.getMonth({ date: this.date });
-
-    if (this.amount > 0) {
-      month.income += amount;
-    } else {
-      month.activity += amount;
-    }
-
-    await month.update();
-
     const category = await BudgetCategory.getCategory(this.categoryId);
     const monthCategory = await BudgetMonthCategory.getMonthCategory({
       month,
       category,
     });
 
-    monthCategory.activity += amount;
-    monthCategory.balance = monthCategory.balance + monthCategory.activity;
-
-    await monthCategory.update();
-    return monthCategory;
+    return monthCategory.updateActivity(this.amount > 0, amount);
   }
 
   async updateAccountAmount(amount: number): Promise<BudgetAccount> {
@@ -234,16 +226,11 @@ export default class BudgetTransaction extends FireBaseModel {
   }
 
   static async getTransaction(
-    ref: firestore.DocumentReference | string
+    ref: documentReferenceType
   ): Promise<BudgetTransaction> {
-    const reference: firestore.DocumentReference =
-      (typeof ref === "object" && ref) ||
-      (typeof ref === "string" &&
-        db.getDB().collection(CollectionTypes.TRANSACTIONS).doc(ref));
-
-    return reference
+    return getDocumentReference(ref, CollectionTypes.TRANSACTIONS)
       .get()
-      .then((category) => new BudgetTransaction({ snapshot: category }));
+      .then((transaction) => new BudgetTransaction({ snapshot: transaction }));
   }
 }
 

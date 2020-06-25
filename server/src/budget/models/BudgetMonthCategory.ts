@@ -3,6 +3,7 @@ import {
   CollectionTypes,
   FireBaseModel,
   firebaseStorageTypes,
+  getDocumentReference,
 } from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
 import BudgetCategory from "./BudgetCategory";
@@ -15,6 +16,7 @@ export default class BudgetMonthCategory extends FireBaseModel {
   balance: number;
   categoryId: firestore.DocumentReference;
   categoryName?: string;
+  monthId?: firestore.DocumentReference;
 
   constructor({
     explicit,
@@ -28,12 +30,13 @@ export default class BudgetMonthCategory extends FireBaseModel {
       snapshot,
     });
 
-    const { activity, budgeted, balance, categoryId, categoryName } =
+    const { activity, budgeted, balance, monthId, categoryId, categoryName } =
       explicit || snapshot.data();
 
     this.activity = activity || 0;
     this.balance = balance || 0;
     this.budgeted = budgeted || 0;
+    this.monthId = monthId;
     this.categoryId = categoryId;
     this.categoryName = categoryName;
   }
@@ -45,6 +48,7 @@ export default class BudgetMonthCategory extends FireBaseModel {
       budgeted: this.budgeted,
       balance: this.balance,
       categoryId: this.categoryId && this.categoryId.id,
+      monthId: this.monthId && this.monthId.id,
       categoryName: this.categoryName,
     });
   }
@@ -54,6 +58,7 @@ export default class BudgetMonthCategory extends FireBaseModel {
       activity: this.activity,
       budgeted: this.budgeted,
       balance: this.balance,
+      monthId: this.monthId,
       categoryId: this.categoryId,
       categoryName: this.categoryName,
     });
@@ -61,6 +66,34 @@ export default class BudgetMonthCategory extends FireBaseModel {
 
   setLinkedValues({ categoryName }: { categoryName: string }): void {
     this.categoryName = categoryName || this.categoryName;
+  }
+
+  async updateMonthCategory({
+    budget,
+  }: {
+    budget: number;
+  }): Promise<BudgetMonthCategory> {
+    return this.updateBudget(budget);
+  }
+
+  async updateBudget(budget: number): Promise<BudgetMonthCategory> {
+    const month = await BudgetMonth.getMonth({ ref: this.monthId });
+    await month.updateBudget(this.budgeted, budget);
+    this.budgeted = budget;
+    return this.update();
+  }
+
+  async updateActivity(
+    isIncome: boolean,
+    amount: number
+  ): Promise<BudgetMonthCategory> {
+    const month = await BudgetMonth.getMonth({ ref: this.monthId });
+    await month.updateActivity(isIncome, amount);
+
+    this.activity += amount;
+    this.balance = this.balance + this.activity;
+
+    return this.update();
   }
 
   async getFullyPopulatedMonthCategory(): Promise<firebaseStorageTypes> {
@@ -73,30 +106,50 @@ export default class BudgetMonthCategory extends FireBaseModel {
     });
   }
 
+  async update(): Promise<BudgetMonthCategory> {
+    await super.update();
+    return this;
+  }
+
   static async getAllMonthCategories({
     month,
   }: {
-    month: BudgetMonth;
+    month: string | BudgetMonth;
   }): Promise<BudgetMonthCategory[]> {
-    const monthCategories = await month.id
-      .collection(CollectionTypes.MONTH_CATEGORIES)
-      .get();
+    const monthCategoryCollectionReference = getDocumentReference(
+      month,
+      CollectionTypes.MONTHS
+    ).collection(CollectionTypes.MONTH_CATEGORIES);
 
-    return monthCategories.docs.map(
-      (category) => new BudgetMonthCategory({ snapshot: category })
-    );
+    return monthCategoryCollectionReference
+      .get()
+      .then((monthCategories) =>
+        monthCategories.docs.map(
+          (category) => new BudgetMonthCategory({ snapshot: category })
+        )
+      );
   }
 
   static async getMonthCategory({
     month,
     category,
   }: {
-    month: BudgetMonth;
-    category: BudgetCategory;
+    month: string | BudgetMonth;
+    category: string | BudgetCategory;
   }): Promise<BudgetMonthCategory> {
-    const monthCategories = await month.id
+    const monthCategoryCollectionReference = getDocumentReference(
+      month,
+      CollectionTypes.MONTHS
+    );
+
+    const categoryReference = getDocumentReference(
+      category,
+      CollectionTypes.CATEGORIES
+    );
+
+    const monthCategories = await monthCategoryCollectionReference
       .collection(CollectionTypes.MONTH_CATEGORIES)
-      .where("categoryId", "==", category.id)
+      .where("categoryId", "==", categoryReference)
       .get();
 
     if (monthCategories.docs.length == 1) {
@@ -110,6 +163,7 @@ type BudgetMonthCategoryInternalProperties = {
   activity?: number;
   budgeted?: number;
   balance?: number;
+  monthId?: firestore.DocumentReference;
   categoryId?: firestore.DocumentReference;
   categoryName?: string;
 };
@@ -119,6 +173,7 @@ type BudgetMonthCategoryDisplayProperties = {
   activity?: number;
   budgeted?: number;
   balance?: number;
+  monthId?: string;
   categoryId?: string;
   categoryName?: string;
 };

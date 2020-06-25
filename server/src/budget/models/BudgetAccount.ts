@@ -1,5 +1,10 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import db, {
+  CollectionTypes,
+  documentReferenceType,
+  FireBaseModel,
+  getDocumentReference,
+} from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
 import BudgetTransaction from "./BudgetTransaction";
 import BudgetTransactionPayee from "./BudgetTransactionPayee";
@@ -157,15 +162,8 @@ export default class BudgetAccount extends FireBaseModel {
       );
   }
 
-  static async getAccount(
-    ref: firestore.DocumentReference | string
-  ): Promise<BudgetAccount> {
-    const reference: firestore.DocumentReference =
-      (typeof ref === "object" && ref) ||
-      (typeof ref === "string" &&
-        db.getDB().collection(CollectionTypes.ACCOUNTS).doc(ref));
-
-    return reference
+  static async getAccount(ref: documentReferenceType): Promise<BudgetAccount> {
+    return getDocumentReference(ref, CollectionTypes.ACCOUNTS)
       .get()
       .then((account) => new BudgetAccount({ snapshot: account }));
   }

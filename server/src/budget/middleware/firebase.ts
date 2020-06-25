@@ -62,6 +62,23 @@ export abstract class FireBaseModel {
   }
 }
 
+export type documentReferenceType =
+  | FireBaseModel
+  | string
+  | firestore.DocumentReference;
+
+export const getDocumentReference = (
+  ref: documentReferenceType,
+  collectionType?: CollectionTypes
+): firestore.DocumentReference => {
+  return (
+    (typeof ref === "string" &&
+      db.getDB().collection(collectionType).doc(ref)) ||
+    (ref instanceof FireBaseModel && ref.id) ||
+    (ref instanceof firestore.DocumentReference && ref)
+  );
+};
+
 export default {
   getDB: (): firestore.DocumentReference => {
     return db

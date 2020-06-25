@@ -1,5 +1,10 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import db, {
+  CollectionTypes,
+  documentReferenceType,
+  FireBaseModel,
+  getDocumentReference,
+} from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
 
 export default class BudgetScheduledTransaction extends FireBaseModel {
@@ -107,6 +112,17 @@ export default class BudgetScheduledTransaction extends FireBaseModel {
         scheduledTransactions.docs.map(
           (snapshot) => new BudgetScheduledTransaction({ snapshot })
         )
+      );
+  }
+
+  static async getScheduledTransaction(
+    ref: documentReferenceType
+  ): Promise<BudgetScheduledTransaction> {
+    return getDocumentReference(ref, CollectionTypes.SCHEDULED_TRANSACTIONS)
+      .get()
+      .then(
+        (scheduledTransaction) =>
+          new BudgetScheduledTransaction({ snapshot: scheduledTransaction })
       );
   }
 }

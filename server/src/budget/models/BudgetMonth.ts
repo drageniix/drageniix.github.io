@@ -1,5 +1,10 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import db, {
+  CollectionTypes,
+  documentReferenceType,
+  FireBaseModel,
+  getDocumentReference,
+} from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
 import BudgetCategory from "./BudgetCategory";
 import BudgetMonthCategory from "./BudgetMonthCategory";
@@ -7,11 +12,11 @@ import BudgetMonthCategory from "./BudgetMonthCategory";
 export default class BudgetMonth extends FireBaseModel {
   id: firestore.DocumentReference;
   activity: number;
-  available: number;
   budgeted: number;
   income: number;
   date: Date;
-  overBudget: number;
+  available: number; //todo
+  overBudget: number; //todo
   categories: firestore.CollectionReference;
 
   constructor({
@@ -73,6 +78,33 @@ export default class BudgetMonth extends FireBaseModel {
     return null;
   }
 
+  async updateBudget(
+    oldBudget: number,
+    newBudget: number
+  ): Promise<BudgetMonth> {
+    this.budgeted -= oldBudget;
+    this.budgeted += newBudget;
+    return this.update();
+  }
+
+  async updateActivity(
+    isIncome: boolean,
+    amount: number
+  ): Promise<BudgetMonth> {
+    if (isIncome) {
+      this.income += amount;
+    } else {
+      this.activity += amount;
+    }
+
+    return this.update();
+  }
+
+  async update(): Promise<BudgetMonth> {
+    await super.update();
+    return this;
+  }
+
   async post(): Promise<BudgetMonth> {
     const allCategories = await BudgetCategory.getAllCategories();
 
@@ -83,7 +115,11 @@ export default class BudgetMonth extends FireBaseModel {
     await Promise.all(
       allCategories.map((category) =>
         new BudgetMonthCategory({
-          explicit: { categoryId: category.id, categoryName: category.name },
+          explicit: {
+            monthId: this.id,
+            categoryId: category.id,
+            categoryName: category.name,
+          },
         }).post(this.categories)
       )
     );
@@ -106,7 +142,7 @@ export default class BudgetMonth extends FireBaseModel {
     ref,
     date,
   }: {
-    ref?: firestore.DocumentReference | string;
+    ref?: documentReferenceType;
     date?: Date;
   }): Promise<BudgetMonth> {
     if (date) {
@@ -130,12 +166,7 @@ export default class BudgetMonth extends FireBaseModel {
             : new BudgetMonth({ explicit: { date: startDate } }).post()
         );
     } else if (ref) {
-      const reference =
-        (typeof ref === "object" && ref) || // direct ref
-        (typeof ref === "string" && // id
-          db.getDB().collection(CollectionTypes.MONTHS).doc(ref));
-
-      return reference
+      return getDocumentReference(ref, CollectionTypes.MONTHS)
         .get()
         .then((month) => new BudgetMonth({ snapshot: month }));
     }
