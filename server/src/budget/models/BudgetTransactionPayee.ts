@@ -1,6 +1,8 @@
 import { firestore } from "firebase-admin";
 import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
+import BudgetAccount from "./BudgetAccount";
+import BudgetTransaction from "./BudgetTransaction";
 
 export default class BudgetTransactionPayee extends FireBaseModel {
   id: firestore.DocumentReference;
@@ -58,11 +60,45 @@ export default class BudgetTransactionPayee extends FireBaseModel {
   }): void {
     this.transferAccountName = transferAccountName || this.transferAccountName;
     this.transferAccountId = transferAccountId || this.transferAccountId;
+    this.name =
+      (transferAccountName && "TRANSFER: " + this.transferAccountName) ||
+      this.name;
+  }
+
+  async update(): Promise<BudgetTransactionPayee> {
+    await super.update();
+    return this;
   }
 
   async post(): Promise<BudgetTransactionPayee> {
     await super.post(db.getDB().collection(CollectionTypes.PAYEES));
     return this;
+  }
+
+  async updateName(newName: string): Promise<BudgetTransactionPayee> {
+    this.name = newName;
+
+    await BudgetTransaction.getAllTransactions({
+      payee: this,
+    }).then((transactions) =>
+      Promise.all(
+        transactions.map((transaction) => {
+          transaction.setLinkedValues({
+            payeeName: this.name,
+          });
+          return transaction.update();
+        })
+      )
+    );
+
+    if (this.transferAccountId) {
+      await BudgetAccount.getAccount(this.transferAccountId).then((account) => {
+        account.setLinkedValues({ transferPayeeName: this.name });
+        return account.update();
+      });
+    }
+
+    return this.update();
   }
 
   static async getAllPayees(): Promise<BudgetTransactionPayee[]> {
@@ -73,6 +109,18 @@ export default class BudgetTransactionPayee extends FireBaseModel {
       .then((payees) =>
         payees.docs.map((snapshot) => new BudgetTransactionPayee({ snapshot }))
       );
+  }
+
+  static async getPayee(
+    ref: firestore.DocumentReference | string
+  ): Promise<BudgetTransactionPayee> {
+    const reference: firestore.DocumentReference =
+      (typeof ref === "object" && ref) ||
+      (typeof ref === "string" &&
+        db.getDB().collection(CollectionTypes.PAYEES).doc(ref));
+    return reference
+      .get()
+      .then((payee) => new BudgetTransactionPayee({ snapshot: payee }));
   }
 }
 

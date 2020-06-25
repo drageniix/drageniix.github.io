@@ -1,6 +1,7 @@
 import { firestore } from "firebase-admin";
 import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
+import BudgetTransaction from "./BudgetTransaction";
 import BudgetTransactionPayee from "./BudgetTransactionPayee";
 
 export default class BudgetAccount extends FireBaseModel {
@@ -69,6 +70,51 @@ export default class BudgetAccount extends FireBaseModel {
     this.transferPayeeName = transferPayeeName || this.transferPayeeName;
   }
 
+  async updateName(newName: string): Promise<BudgetAccount> {
+    this.name = newName;
+
+    await BudgetTransaction.getAllTransactions({
+      account: this,
+    }).then((transactions) =>
+      Promise.all(
+        transactions.map((transaction) => {
+          transaction.setLinkedValues({
+            accountName: this.name,
+          });
+          return transaction.update();
+        })
+      )
+    );
+
+    await BudgetTransactionPayee.getPayee(this.transferPayeeId)
+      .then((payee) => {
+        payee.setLinkedValues({ transferAccountName: this.name });
+        this.transferPayeeName = payee.name;
+        return payee.update();
+      })
+      .then((payee) =>
+        BudgetTransaction.getAllTransactions({
+          payee,
+        }).then((transactions) =>
+          Promise.all(
+            transactions.map((transaction) => {
+              transaction.setLinkedValues({
+                payeeName: this.name,
+              });
+              return transaction.update();
+            })
+          )
+        )
+      );
+
+    return this.update();
+  }
+
+  async update(): Promise<BudgetAccount> {
+    await super.update();
+    return this;
+  }
+
   // Override
   async post(): Promise<BudgetAccount> {
     // Create equivalent payee for transfers
@@ -104,6 +150,19 @@ export default class BudgetAccount extends FireBaseModel {
       .then((accounts) =>
         accounts.docs.map((snapshot) => new BudgetAccount({ snapshot }))
       );
+  }
+
+  static async getAccount(
+    ref: firestore.DocumentReference | string
+  ): Promise<BudgetAccount> {
+    const reference: firestore.DocumentReference =
+      (typeof ref === "object" && ref) ||
+      (typeof ref === "string" &&
+        db.getDB().collection(CollectionTypes.ACCOUNTS).doc(ref));
+
+    return reference
+      .get()
+      .then((account) => new BudgetAccount({ snapshot: account }));
   }
 }
 

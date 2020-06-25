@@ -2,6 +2,7 @@ import { firestore } from "firebase-admin";
 import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
 import BudgetCategory from "./BudgetCategory";
+import BudgetMonthCategory from "./BudgetMonthCategory";
 
 export default class BudgetMonth extends FireBaseModel {
   id: firestore.DocumentReference;
@@ -35,7 +36,8 @@ export default class BudgetMonth extends FireBaseModel {
       categories,
     } = explicit || snapshot.data();
 
-    this.date = (snapshot && date.toDate()) || date;
+    this.date = (snapshot && date.toDate()) || new Date(date);
+    this.categories = categories;
     this.activity = activity || 0;
     this.available = available || 0;
     this.budgeted = budgeted || 0;
@@ -47,13 +49,12 @@ export default class BudgetMonth extends FireBaseModel {
   getFormattedResponse(): BudgetMonthDisplayProperties {
     return filterUndefinedProperties({
       id: this.id && this.id.id,
-      date: this.date,
+      date: this.date.toDateString(),
       activity: this.activity,
       available: this.available,
       budgeted: this.budgeted,
       income: this.income,
       overBudget: this.overBudget,
-      categories: this.categories && this.categories.id,
     });
   }
 
@@ -65,7 +66,6 @@ export default class BudgetMonth extends FireBaseModel {
       budgeted: this.budgeted,
       income: this.income,
       overBudget: this.overBudget,
-      categories: this.categories,
     });
   }
 
@@ -74,23 +74,71 @@ export default class BudgetMonth extends FireBaseModel {
   }
 
   async post(): Promise<BudgetMonth> {
-    // TODO: generate all month categories
+    const allCategories = await BudgetCategory.getAllCategories();
+
     await super.post(db.getDB().collection(CollectionTypes.MONTHS));
 
-    const allCategories = await BudgetCategory.getAllCategories();
-    allCategories.forEach((category) => {});
+    this.categories = this.id.collection(CollectionTypes.MONTH_CATEGORIES);
+
+    await Promise.all(
+      allCategories.map((category) =>
+        new BudgetMonthCategory({
+          explicit: { categoryId: category.id, categoryName: category.name },
+        }).post(this.categories)
+      )
+    );
 
     return this;
   }
 
-  static async getAllAccounts(): Promise<BudgetMonth[]> {
+  static async getAllMonths(): Promise<BudgetMonth[]> {
     return db
       .getDB()
       .collection(CollectionTypes.MONTHS)
+      .orderBy("date", "desc")
       .get()
       .then((months) =>
         months.docs.map((snapshot) => new BudgetMonth({ snapshot }))
       );
+  }
+
+  static async getMonth({
+    ref,
+    date,
+  }: {
+    ref?: firestore.DocumentReference | string;
+    date?: Date;
+  }): Promise<BudgetMonth> {
+    if (date) {
+      const startDate = new Date(date);
+      startDate.setDate(1);
+
+      const endDate = new Date(startDate);
+      endDate.setMonth(startDate.getMonth() + 1);
+
+      // search
+      return db
+        .getDB()
+        .collection(CollectionTypes.MONTHS)
+        .orderBy("date")
+        .startAt(startDate)
+        .endBefore(endDate)
+        .get()
+        .then(
+          (month) =>
+            month.docs.length === 1 &&
+            new BudgetMonth({ snapshot: month.docs[0] })
+        );
+    } else if (ref) {
+      const reference =
+        (typeof ref === "object" && ref) || // direct ref
+        (typeof ref === "string" && // id
+          db.getDB().collection(CollectionTypes.MONTHS).doc(ref));
+
+      return reference
+        .get()
+        .then((month) => new BudgetMonth({ snapshot: month }));
+    }
   }
 }
 

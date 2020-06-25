@@ -4,7 +4,7 @@ import budgetRoutes from "./budget/routes";
 import logger from "./middleware/logger";
 import io from "./middleware/socket";
 
-class App {
+export default class App {
   public app: express.Application;
 
   constructor() {
@@ -57,7 +57,7 @@ class App {
           statusCode?: number;
           message?: string;
           name?: string;
-          data?: any;
+          data?: any; // eslint-disable-line
           path?: string;
         },
         req?: express.Request,
@@ -74,11 +74,9 @@ class App {
             "Internal Server Error",
           data: error.data,
         };
-        logger.error(`STATUS ${err.code}: ${req.url} --- ${err.message}`);
+        logger.error(`STATUS ${err.code}: ${req.url} --- ${error}`);
         res.status(err.code).json(err);
       }
     );
   }
 }
-
-export default App;

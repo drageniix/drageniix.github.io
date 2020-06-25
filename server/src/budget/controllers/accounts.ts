@@ -23,3 +23,13 @@ export const postAccount = async (
     .post()
     .then((account) => res.status(200).json(account.getFormattedResponse()))
     .catch((err) => next(err));
+
+export const putAccount = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): Promise<void | express.Response> =>
+  BudgetAccount.getAccount(req.params.accountId)
+    .then((account) => account.updateName(req.body.name))
+    .then((account) => res.status(200).json(account.getFormattedResponse()))
+    .catch((err) => next(err));

@@ -6,7 +6,7 @@ export default class BudgetCategoryGroup extends FireBaseModel {
   id?: firestore.DocumentReference;
   name: string;
   note?: string;
-  hidden: boolean;
+  active: boolean;
 
   constructor({
     explicit,
@@ -20,18 +20,18 @@ export default class BudgetCategoryGroup extends FireBaseModel {
       snapshot,
     });
 
-    const { name, note, hidden } = explicit || snapshot.data();
+    const { name, note, active } = explicit || snapshot.data();
 
     this.name = name;
     this.note = note;
-    this.hidden = hidden || false;
+    this.active = active || true;
   }
 
   toFireStore(): BudgetCategoryGroupInternalProperties {
     return filterUndefinedProperties({
       name: this.name,
       note: this.note,
-      hidden: this.hidden,
+      active: this.active,
     });
   }
 
@@ -40,7 +40,7 @@ export default class BudgetCategoryGroup extends FireBaseModel {
       id: this.id && this.id.id,
       name: this.name,
       note: this.note,
-      hidden: this.hidden,
+      active: this.active,
     });
   }
 
@@ -57,11 +57,27 @@ export default class BudgetCategoryGroup extends FireBaseModel {
     return db
       .getDB()
       .collection(CollectionTypes.CATEGORY_GROUPS)
+      .where("active", "==", true)
       .get()
       .then((categoryGroups) =>
         categoryGroups.docs.map(
           (snapshot) => new BudgetCategoryGroup({ snapshot })
         )
+      );
+  }
+
+  static async getCategoryGroup(
+    ref: firestore.DocumentReference | string
+  ): Promise<BudgetCategoryGroup> {
+    const reference: firestore.DocumentReference =
+      (typeof ref === "object" && ref) ||
+      (typeof ref === "string" &&
+        db.getDB().collection(CollectionTypes.CATEGORY_GROUPS).doc(ref));
+
+    return reference
+      .get()
+      .then(
+        (categoryGroup) => new BudgetCategoryGroup({ snapshot: categoryGroup })
       );
   }
 }
@@ -70,12 +86,12 @@ type BudgetCategoryGroupInternalProperties = {
   id?: firestore.DocumentReference;
   name?: string;
   note?: string;
-  hidden?: boolean;
+  active?: boolean;
 };
 
 type BudgetCategoryGroupDisplayProperties = {
   id?: string;
   name?: string;
   note?: string;
-  hidden?: boolean;
+  active?: boolean;
 };

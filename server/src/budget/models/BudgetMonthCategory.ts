@@ -1,6 +1,8 @@
 import { firestore } from "firebase-admin";
-import db, { CollectionTypes, FireBaseModel } from "../middleware/firebase";
+import { CollectionTypes, FireBaseModel } from "../middleware/firebase";
 import { filterUndefinedProperties } from "../res/util";
+import BudgetCategory from "./BudgetCategory";
+import BudgetMonth from "./BudgetMonth";
 
 export default class BudgetMonthCategory extends FireBaseModel {
   id: firestore.DocumentReference;
@@ -57,18 +59,30 @@ export default class BudgetMonthCategory extends FireBaseModel {
     this.categoryName = categoryName || this.categoryName;
   }
 
-  static async getAllMonthCategories(
-    monthId: string
-  ): Promise<BudgetMonthCategory[]> {
-    return db
-      .getDB()
-      .collection(CollectionTypes.MONTHS)
-      .doc(monthId)
-      .collection(CollectionTypes.MONTH_CATEGORIES)
-      .get()
-      .then((months) =>
-        months.docs.map((snapshot) => new BudgetMonthCategory({ snapshot }))
+  static async getAllMonthCategories({
+    month,
+    category,
+  }: {
+    month: BudgetMonth;
+    category?: BudgetCategory;
+  }): Promise<BudgetMonthCategory[]> {
+    const collection = month.id.collection(CollectionTypes.MONTH_CATEGORIES);
+    let monthCategories: firestore.QuerySnapshot;
+
+    if (category) {
+      const query: firestore.Query = collection.where(
+        "categoryId",
+        "==",
+        category.id
       );
+      monthCategories = await query.get();
+    } else {
+      monthCategories = await collection.get();
+    }
+
+    return monthCategories.docs.map(
+      (category) => new BudgetMonthCategory({ snapshot: category })
+    );
   }
 }
 

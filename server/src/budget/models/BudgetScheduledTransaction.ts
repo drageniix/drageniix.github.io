@@ -4,8 +4,7 @@ import { filterUndefinedProperties } from "../res/util";
 
 export default class BudgetScheduledTransaction extends FireBaseModel {
   id: firestore.DocumentReference;
-  dateFirst: Date;
-  dateNext: Date;
+  date: Date;
   frequency: string;
   amount: number;
   memo?: string;
@@ -16,8 +15,6 @@ export default class BudgetScheduledTransaction extends FireBaseModel {
   payeeName?: string;
   categoryId?: firestore.DocumentReference;
   categoryName?: string;
-  transferAccountId?: firestore.DocumentReference;
-  transferAccountName?: string;
 
   constructor({
     explicit,
@@ -32,8 +29,7 @@ export default class BudgetScheduledTransaction extends FireBaseModel {
     });
 
     const {
-      dateFirst,
-      dateNext,
+      date,
       frequency,
       amount,
       memo,
@@ -44,13 +40,9 @@ export default class BudgetScheduledTransaction extends FireBaseModel {
       payeeName,
       categoryId,
       categoryName,
-      transferAccountId,
-      transferAccountName,
     } = explicit || snapshot.data();
 
-    this.dateFirst =
-      (snapshot && dateFirst.toDate()) || dateFirst || new Date();
-    this.dateNext = (snapshot && dateNext.toDate()) || dateNext || new Date();
+    this.date = (snapshot && date && date.toDate()) || new Date(date);
     this.amount = amount || 0;
     this.memo = memo;
     this.frequency = frequency || "never";
@@ -61,14 +53,11 @@ export default class BudgetScheduledTransaction extends FireBaseModel {
     this.payeeName = payeeName;
     this.categoryId = categoryId;
     this.categoryName = categoryName;
-    this.transferAccountId = transferAccountId;
-    this.transferAccountName = transferAccountName;
   }
 
   getFormattedResponse(): BudgetScheduledTransactionDisplayProperties {
     return filterUndefinedProperties({
-      dateFirst: this.dateFirst,
-      dateNext: this.dateNext,
+      date: this.date.toDateString(),
       amount: this.amount,
       memo: this.memo,
       frequency: this.frequency,
@@ -78,16 +67,13 @@ export default class BudgetScheduledTransaction extends FireBaseModel {
       payeeId: this.payeeId.id,
       payeeName: this.payeeName,
       categoryId: this.categoryId.id,
-      transferAccountId: this.transferAccountId.id,
-      transferAccountName: this.transferAccountName,
       categoryName: this.categoryName,
     });
   }
 
   toFireStore(): BudgetScheduledTransactionInternalProperties {
     return filterUndefinedProperties({
-      dateFirst: this.dateFirst,
-      dateNext: this.dateNext,
+      date: this.date,
       amount: this.amount,
       memo: this.memo,
       frequency: this.frequency,
@@ -98,8 +84,6 @@ export default class BudgetScheduledTransaction extends FireBaseModel {
       payeeName: this.payeeName,
       categoryId: this.categoryId,
       categoryName: this.categoryName,
-      transferAccountId: this.transferAccountId,
-      transferAccountName: this.transferAccountName,
     });
   }
 
@@ -129,8 +113,7 @@ export default class BudgetScheduledTransaction extends FireBaseModel {
 
 export type BudgetScheduledTransactionInternalProperties = {
   id?: firestore.DocumentReference;
-  dateFirst?: Date;
-  dateNext?: Date;
+  date?: Date;
   frequency?: string;
   amount?: number;
   memo?: string;
@@ -138,17 +121,14 @@ export type BudgetScheduledTransactionInternalProperties = {
   accountId?: firestore.DocumentReference;
   payeeId?: firestore.DocumentReference;
   categoryId?: firestore.DocumentReference;
-  transferAccountId?: firestore.DocumentReference;
   accountName?: string;
   payeeName?: string;
   categoryName?: string;
-  transferAccountName?: string;
 };
 
 export type BudgetScheduledTransactionDisplayProperties = {
   id?: string;
-  dateFirst?: Date;
-  dateNext?: Date;
+  date?: Date;
   frequency?: string;
   amount?: number;
   memo?: string;
@@ -156,9 +136,7 @@ export type BudgetScheduledTransactionDisplayProperties = {
   accountId?: string;
   payeeId?: string;
   categoryId?: string;
-  transferAccountId?: string;
   accountName?: string;
   payeeName?: string;
   categoryName?: string;
-  transferAccountName?: string;
 };

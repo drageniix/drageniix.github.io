@@ -1,13 +1,8 @@
 import { firestore } from "firebase-admin";
 import db from "../../middleware/firebase";
 
-export default {
-  getDB: (): firestore.DocumentReference => {
-    return db.getDB().collection("budget").doc(process.env.NODE_ENV);
-  },
-};
-
 export enum CollectionTypes {
+  BUDGET = "budget",
   PAYEES = "payees",
   ACCOUNTS = "accounts",
   CATEGORIES = "categories",
@@ -18,11 +13,11 @@ export enum CollectionTypes {
   SCHEDULED_TRANSACTIONS = "scheduled_transactions",
 }
 
-type displayTypes = {
+export type displayTypes = {
   [key: string]: string | number | boolean | Date;
 };
 
-type firebaseStorageTypes = {
+export type firebaseStorageTypes = {
   [key: string]:
     | string
     | boolean
@@ -66,3 +61,12 @@ export abstract class FireBaseModel {
     return this;
   }
 }
+
+export default {
+  getDB: (): firestore.DocumentReference => {
+    return db
+      .getDB()
+      .collection(CollectionTypes.BUDGET)
+      .doc(process.env.NODE_ENV);
+  },
+};
