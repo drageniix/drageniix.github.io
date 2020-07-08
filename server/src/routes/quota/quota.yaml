@@ -1,0 +1,137 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Quota
+  license:
+    name: MIT
+servers:
+  - url: https://barrow-dev.herokuapp.com/v1/quota
+
+paths:
+  /user/signup:
+    post:
+      summary: Sign Up
+      operationId: signup
+      tags:
+        - Authentication
+      requestBody:
+        description: Email and password to create a new user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpRequest"
+      responses:
+        200:
+          description: An paged array of pets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserLoginResponse"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user/login:
+    post:
+      summary: Login
+      operationId: login
+      tags:
+        - Authentication
+      requestBody:
+        description: Email and password to create a new user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLoginRequest"
+      responses:
+        200:
+          description: An paged array of pets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserLoginResponse"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    SignUpRequest:
+      required:
+        - email
+        - password
+      allOf:
+        - $ref: "#/components/schemas/UserLoginRequest"
+        - type: object
+          properties:
+            name:
+              type: string
+
+    UserLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Will be verified
+        password:
+          type: string
+          format: password
+          description: 5 characters
+
+    UserLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        userId:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        priviliege:
+          type: integer
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+          example: 500
+        message:
+          type: string
+        name:
+          type: string
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        path:
+          type: string

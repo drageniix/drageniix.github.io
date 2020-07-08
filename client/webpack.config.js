@@ -1,3 +1,4 @@
+const webpack = require("webpack");
 const TerserPlugin = require("terser-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -6,6 +7,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const path = require("path");
+const DotEnv = require("dotenv-webpack");
 
 const outputPath = path.join(__dirname, "/public");
 const appTitle = "Ashley Barrow";
@@ -26,7 +28,7 @@ const manifest = {
   ],
 };
 
-function getPlugins(isProduction) {
+function getPlugins(env) {
   const plugins = [
     new HtmlWebPackPlugin({
       chunks: ["index"],
@@ -47,9 +49,10 @@ function getPlugins(isProduction) {
       filename: "./styles/[hash].css",
       chunkFilename: "./styles/[name]-[hash].css",
     }),
+    new DotEnv(),
   ];
 
-  if (isProduction) {
+  if (env == "production") {
     plugins.unshift(
       new CleanWebpackPlugin({
         verbose: false,
@@ -63,7 +66,7 @@ function getPlugins(isProduction) {
   return plugins;
 }
 
-module.exports = (env = "development") => {
+module.exports = (env = process.env.NODE_ENV || "development") => {
   const isProduction = env == "production";
 
   return {
@@ -118,7 +121,7 @@ module.exports = (env = "development") => {
         },
       ],
     },
-    plugins: getPlugins(isProduction),
+    plugins: getPlugins(env),
     optimization: {
       splitChunks: {
         chunks: "all",

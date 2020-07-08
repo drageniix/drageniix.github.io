@@ -2,6 +2,7 @@ import http, { Server } from "http";
 import App from "./App";
 import db from "./middleware/firebase";
 import logger from "./middleware/logger";
+import plaid from "./middleware/plaid";
 import socket from "./middleware/socket";
 
 (function initiateServer(): Server {
@@ -18,7 +19,9 @@ import socket from "./middleware/socket";
   const server = http.createServer(app);
 
   db.init();
+  plaid.init();
   socket.init(server);
+
   server.listen(port, () => {
     logger.info(`Server open on port ${port}`);
   });

@@ -32,11 +32,11 @@
     }
   ],
   "name": "Ashley Barrow",
-  "short_name": "Barrow",
+  "short_name": "Barrow Dev",
   "orientation": "portrait",
   "display": "standalone",
   "start_url": ".",
-  "description": "Full Stack Development",
+  "description": "Fullstack Software Engineer",
   "background_color": "#ffffff",
   "theme_color": "#4d004d"
 }

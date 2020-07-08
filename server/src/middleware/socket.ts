@@ -7,7 +7,7 @@ let io: socket.Server;
 export default {
   init(server: Server): void {
     io = socket(server);
-    io.on("connection", socket => {
+    io.on("connection", (socket) => {
       logger.info("Server socket connected");
       socket.on("disconnect", () => logger.info("Server socket disconnected."));
     });
@@ -15,5 +15,5 @@ export default {
   getIO(): socket.Server {
     if (!io) throw new Error("No active websocket.");
     return io;
-  }
+  },
 };

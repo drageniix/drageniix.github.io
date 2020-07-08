@@ -63,16 +63,16 @@ export type Payee = {
   transfer_account_id?: string | null;
 };
 
-// export type Month = {
-//   month: string;
-//   note?: string | null;
-//   income: number;
-//   budgeted: number;
-//   activity: number;
-//   to_be_budgeted: number;
-//   over_budget: number;
-//   scheduled: number;
-// };
+export type Month = {
+  month: string;
+  note?: string | null;
+  income: number;
+  budgeted: number;
+  activity: number;
+  to_be_budgeted: number;
+  over_budget: number;
+  scheduled: number;
+};
 
 export type Account = {
   id: string;

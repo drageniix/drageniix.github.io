@@ -1,8 +1,12 @@
 import express = require("express");
 import { json, urlencoded } from "body-parser";
-import budgetRoutes from "./budget/routes";
-import logger from "./middleware/logger";
+import {
+  CustomRequest,
+  handle400Errors,
+  handleErrors,
+} from "./middleware/express";
 import io from "./middleware/socket";
+import quota from "./routes/quota/routes";
 
 export default class App {
   public app: express.Application;
@@ -13,11 +17,10 @@ export default class App {
     this.app.use(json());
     this.setDefaultHeaders();
     this.mountRoutes();
-    this.handleErrors();
   }
 
   setDefaultHeaders(): void {
-    this.app.use((req, res, next) => {
+    this.app.use((req: CustomRequest, res, next) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader(
         "Access-Control-Allow-Methods",
@@ -27,56 +30,21 @@ export default class App {
         "Access-Control-Allow-Headers",
         "Content-Type, Authorization"
       );
+      req.io = io.getIO();
       next();
     });
   }
 
   mountRoutes(): void {
-    this.app.use("/budget", budgetRoutes);
-
     this.app.get("/test", (req, res) => {
       io.getIO().emit("test", { hello: "world" });
       res.status(200).json({
         message: "Hello World!",
       });
     });
-  }
 
-  handleErrors(): void {
-    this.app.use((req, res, next) =>
-      next({
-        statusCode: 404,
-        message: "Page not found.",
-        path: req.url,
-      })
-    );
-
-    this.app.use(
-      (
-        error: {
-          statusCode?: number;
-          message?: string;
-          name?: string;
-          data?: any; // eslint-disable-line
-          path?: string;
-        },
-        req?: express.Request,
-        res?: express.Response,
-        next?: express.NextFunction // eslint-disable-line
-      ) => {
-        const err = {
-          code: error.statusCode || 500,
-          path: error.path || req.url,
-          message:
-            error.message ||
-            error.name ||
-            (typeof error === "string" && error) ||
-            "Internal Server Error",
-          data: error.data,
-        };
-        logger.error(`STATUS ${err.code}: ${req.url} --- ${error}`);
-        res.status(err.code).json(err);
-      }
-    );
+    this.app.use("/v1/quota", quota);
+    this.app.use(handle400Errors);
+    this.app.use(handleErrors);
   }
 }

@@ -1,9 +1,7 @@
-import budget from "./budget/transformer";
 import { ApplicationState } from "./types/application.types";
 
 const initialState: ApplicationState = {
   message: "Hello World?",
-  budget,
 };
 
 export default (
