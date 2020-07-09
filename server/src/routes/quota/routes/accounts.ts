@@ -1,15 +1,16 @@
 import express from "express";
 import { asyncWrapper } from "../../../middleware/express";
 import * as accountControllers from "../controllers/accounts";
+import { isAuth } from "../middleware/common";
 
 const router = express.Router({ mergeParams: true });
 
-router.get("/", asyncWrapper(accountControllers.getAccounts));
+router.get("/", isAuth, asyncWrapper(accountControllers.getAccounts));
 
-router.post("/", asyncWrapper(accountControllers.postAccount));
+router.post("/", isAuth, asyncWrapper(accountControllers.postAccount));
 
-router.get("/:accountId", asyncWrapper(accountControllers.getAccount));
+router.get("/:accountId", isAuth, asyncWrapper(accountControllers.getAccount));
 
-router.put("/:accountId", asyncWrapper(accountControllers.putAccount));
+router.put("/:accountId", isAuth, asyncWrapper(accountControllers.putAccount));
 
 export default router;

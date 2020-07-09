@@ -1,14 +1,11 @@
 import { firestore } from "firebase-admin";
-import { Account, Transaction } from "plaid";
+import { Account } from "plaid";
 import {
   CollectionTypes,
   filterUndefinedProperties,
   FireBaseModel,
 } from "../middleware/firebase";
 import BudgetAccount from "./Account";
-import BudgetCategory from "./Category";
-import BudgetTransactionPayee from "./Payee";
-import BudgetTransaction from "./Transaction";
 
 export default class BudgetInstitution extends FireBaseModel {
   id?: firestore.DocumentReference;
@@ -18,6 +15,7 @@ export default class BudgetInstitution extends FireBaseModel {
   plaidItemId: string;
   plaidAccessToken: string;
   userId?: firestore.DocumentReference;
+  updatedAt?: Date;
 
   constructor({
     explicit,
@@ -31,8 +29,15 @@ export default class BudgetInstitution extends FireBaseModel {
       snapshot,
     });
 
-    const { name, note, active, plaidItemId, plaidAccessToken, userId } =
-      explicit || snapshot.data();
+    const {
+      name,
+      note,
+      active,
+      plaidItemId,
+      plaidAccessToken,
+      userId,
+      updatedAt,
+    } = explicit || snapshot.data();
 
     this.name = name;
     this.note = note;
@@ -40,6 +45,10 @@ export default class BudgetInstitution extends FireBaseModel {
     this.plaidItemId = plaidItemId;
     this.plaidAccessToken = plaidAccessToken;
     this.userId = userId;
+    this.updatedAt =
+      (snapshot && updatedAt && updatedAt.toDate()) ||
+      (updatedAt && new Date(updatedAt)) ||
+      new Date();
   }
 
   toFireStore(): BudgetInstitutionInternalProperties {
@@ -50,6 +59,7 @@ export default class BudgetInstitution extends FireBaseModel {
       plaidItemId: this.plaidItemId,
       plaidAccessToken: this.plaidAccessToken,
       userId: this.userId,
+      updatedAt: this.updatedAt,
     });
   }
 
@@ -59,6 +69,7 @@ export default class BudgetInstitution extends FireBaseModel {
       name: this.name,
       note: this.note,
       userId: this.userId && this.userId.id,
+      updatedAt: this.updatedAt,
     });
   }
 
@@ -68,10 +79,8 @@ export default class BudgetInstitution extends FireBaseModel {
 
   async post({
     accounts,
-    transactions,
   }: {
     accounts: Account[];
-    transactions: Transaction[];
   }): Promise<BudgetInstitution> {
     await super.postInternal(
       this.userId.collection(CollectionTypes.INSTITUTION)
@@ -95,56 +104,21 @@ export default class BudgetInstitution extends FireBaseModel {
         }).post()
       )
     );
-
-    await Promise.all(
-      transactions.map(async (transaction) => {
-        const account = await BudgetAccount.getAccount(this.userId, {
-          plaidAccountId: transaction.account_id,
-        });
-
-        const category =
-          (await BudgetCategory.getCategory(this.userId, {
-            description: transaction.category,
-          })) ||
-          (await new BudgetCategory({
-            explicit: {
-              name: transaction.category[0],
-              originalName: transaction.category[0],
-              userId: this.userId,
-            },
-          }).post());
-
-        const payee =
-          (await BudgetTransactionPayee.getPayee(this.userId, {
-            plaidPayeeName: transaction.name,
-          })) ||
-          (await new BudgetTransactionPayee({
-            explicit: {
-              name: transaction.name,
-              originalName: transaction.name,
-              userId: this.userId,
-              defaultCategoryId: category.id,
-            },
-          }).post());
-
-        return new BudgetTransaction({
-          explicit: {
-            accountId: account.id,
-            accountName: account.name,
-            amount: transaction.amount,
-            cleared: !transaction.pending,
-            date: new Date(transaction.date),
-            payeeId: payee.id,
-            payeeName: payee.name,
-            userId: this.id,
-            categoryId: category.id,
-            categoryName: category.name,
-          },
-        }).post();
-      })
-    );
-
     return this;
+  }
+
+  static async getAllInstitutions(
+    userRef: firestore.DocumentReference
+  ): Promise<BudgetInstitution[]> {
+    let query = userRef
+      .collection(CollectionTypes.INSTITUTION)
+      .where("active", "==", true);
+
+    return query
+      .get()
+      .then((institutions) =>
+        institutions.docs.map((snapshot) => new BudgetInstitution({ snapshot }))
+      );
   }
 }
 
@@ -156,6 +130,7 @@ type BudgetInstitutionInternalProperties = {
   plaidItemId?: string;
   plaidAccessToken?: string;
   userId?: firestore.DocumentReference;
+  updatedAt?: Date;
 };
 
 type BudgetInstitutionDisplayProperties = {
@@ -165,5 +140,5 @@ type BudgetInstitutionDisplayProperties = {
   active?: boolean;
   plaidItemId?: string;
   plaidAccessToken?: string;
-  userId?: string;
+  updatedAt?: Date;
 };

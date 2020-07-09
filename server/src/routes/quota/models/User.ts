@@ -6,6 +6,8 @@ import db, {
   FireBaseModel,
   getDocumentReference,
 } from "../middleware/firebase";
+import { getPlaidCategories } from "../middleware/plaid";
+import BudgetCategory from "./Category";
 
 export enum Privilege {
   ADMIN,
@@ -71,6 +73,25 @@ export default class User extends FireBaseModel {
 
   async post(): Promise<User> {
     await super.postInternal(db.getDB().collection(CollectionTypes.USERS));
+
+    await getPlaidCategories().then(({ categories }) =>
+      categories.map((category) => {
+        const reducedCategory = {
+          name: category.hierarchy[0],
+          subCategories: category.hierarchy,
+        };
+
+        return new BudgetCategory({
+          explicit: {
+            name: reducedCategory.name,
+            originalName: reducedCategory.name,
+            subCategories: reducedCategory.subCategories,
+            userId: this.id,
+          },
+        }).post();
+      })
+    );
+
     return this;
   }
 

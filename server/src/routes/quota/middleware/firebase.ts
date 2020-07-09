@@ -27,7 +27,7 @@ export default {
 };
 
 export type displayTypes = {
-  [key: string]: string | number | boolean | Date;
+  [key: string]: string | string[] | number | boolean | Date;
 };
 
 export type firebaseStorageTypes = {

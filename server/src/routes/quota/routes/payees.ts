@@ -1,15 +1,16 @@
 import express from "express";
 import { asyncWrapper } from "../../../middleware/express";
 import * as payeeControllers from "../controllers/payees";
+import { isAuth } from "../middleware/common";
 
 const router = express.Router({ mergeParams: true });
 
-router.get("/", asyncWrapper(payeeControllers.getPayees));
+router.get("/", isAuth, asyncWrapper(payeeControllers.getPayees));
 
-router.post("/", asyncWrapper(payeeControllers.postPayee));
+router.post("/", isAuth, asyncWrapper(payeeControllers.postPayee));
 
-router.get("/:payeeId", asyncWrapper(payeeControllers.getPayee));
+router.get("/:payeeId", isAuth, asyncWrapper(payeeControllers.getPayee));
 
-router.put("/:payeeId", asyncWrapper(payeeControllers.putPayee));
+router.put("/:payeeId", isAuth, asyncWrapper(payeeControllers.putPayee));
 
 export default router;

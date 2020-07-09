@@ -1,15 +1,24 @@
 import express from "express";
 import { asyncWrapper } from "../../../middleware/express";
 import * as categoryControllers from "../controllers/categories";
+import { isAuth } from "../middleware/common";
 
 const router = express.Router({ mergeParams: true });
 
-router.get("/", asyncWrapper(categoryControllers.getCategories));
+router.get("/", isAuth, asyncWrapper(categoryControllers.getCategories));
 
-router.post("/", asyncWrapper(categoryControllers.postCategory));
+router.post("/", isAuth, asyncWrapper(categoryControllers.postCategory));
 
-router.get("/:categoryId", asyncWrapper(categoryControllers.getCategory));
+router.get(
+  "/:categoryId",
+  isAuth,
+  asyncWrapper(categoryControllers.getCategory)
+);
 
-router.put("/:categoryId", asyncWrapper(categoryControllers.putCategory));
+router.put(
+  "/:categoryId",
+  isAuth,
+  asyncWrapper(categoryControllers.putCategory)
+);
 
 export default router;

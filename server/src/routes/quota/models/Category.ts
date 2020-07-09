@@ -20,6 +20,7 @@ export default class BudgetCategory extends FireBaseModel {
   active: boolean;
   name: string;
   originalName: string;
+  subCategories: string[];
   note?: string;
   userId?: firestore.DocumentReference;
 
@@ -46,6 +47,7 @@ export default class BudgetCategory extends FireBaseModel {
       originalName,
       note,
       userId,
+      subCategories,
     } = explicit || snapshot.data();
 
     this.goalCreationMonth =
@@ -62,6 +64,7 @@ export default class BudgetCategory extends FireBaseModel {
     this.originalName = originalName;
     this.note = note;
     this.userId = userId;
+    this.subCategories = subCategories;
   }
 
   getFormattedResponse(): BudgetCategoryDisplayProperties {
@@ -76,6 +79,7 @@ export default class BudgetCategory extends FireBaseModel {
       name: this.name,
       originalName: this.originalName,
       note: this.note,
+      subCategories: this.subCategories,
       userId: this.userId && this.userId.id,
     });
   }
@@ -91,6 +95,7 @@ export default class BudgetCategory extends FireBaseModel {
       name: this.name,
       originalName: this.originalName,
       note: this.note,
+      subCategories: this.subCategories,
       userId: this.userId,
     });
   }
@@ -174,13 +179,13 @@ export default class BudgetCategory extends FireBaseModel {
     userRef: firestore.DocumentReference,
     {
       categoryRef,
-      description,
-    }: { categoryRef?: documentReferenceType; description?: string[] }
+      plaidCategoryName,
+    }: { categoryRef?: documentReferenceType; plaidCategoryName?: string[] }
   ): Promise<BudgetCategory> {
-    if (description) {
+    if (plaidCategoryName) {
       return userRef
         .collection(CollectionTypes.CATEGORIES)
-        .where("originalName", "in", description)
+        .where("originalName", "in", plaidCategoryName)
         .get()
         .then(
           (categories) =>
@@ -212,6 +217,7 @@ type BudgetCategoryInternalProperties = {
   name?: string;
   originalName?: string;
   note?: string;
+  subCategories?: string[];
   userId?: firestore.DocumentReference;
 };
 
@@ -226,5 +232,6 @@ type BudgetCategoryDisplayProperties = {
   name?: string;
   originalName?: string;
   note?: string;
+  subCategories?: string[];
   userId?: string;
 };

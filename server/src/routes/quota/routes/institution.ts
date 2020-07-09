@@ -7,4 +7,10 @@ const router = express.Router({ mergeParams: true });
 
 router.post("/", isAuth, asyncWrapper(plaidControllers.createInstituition));
 
+router.post(
+  "/import",
+  isAuth,
+  asyncWrapper(plaidControllers.importTransactions)
+);
+
 export default router;

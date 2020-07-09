@@ -1,7 +1,11 @@
 import express from "express";
 import { CustomRequest } from "../../../middleware/express";
-import { exchangePublicTokenForItem } from "../middleware/plaid";
+import {
+  exchangePlaidPublicTokenForItem,
+  getPlaidTransactions,
+} from "../middleware/plaid";
 import BudgetInstitution from "../models/Instituition";
+import BudgetTransaction from "../models/Transaction";
 
 export const createInstituition = async (
   req: CustomRequest,
@@ -12,8 +16,7 @@ export const createInstituition = async (
     access_token,
     institution_name,
     accounts,
-    transactions,
-  } = await exchangePublicTokenForItem(req.body.token);
+  } = await exchangePlaidPublicTokenForItem(req.body.token);
 
   const institution = await new BudgetInstitution({
     explicit: {
@@ -22,27 +25,36 @@ export const createInstituition = async (
       plaidAccessToken: access_token,
       userId: req.userId,
     },
-  }).post({ accounts, transactions });
+  }).post({ accounts });
 
   return res.status(200).json(institution.getFormattedResponse());
 };
 
-// update
-// export const getItem = async (CustomRequest, res: express.Response) => {
-//   let response: any;
+export const importTransactions = async (
+  req: CustomRequest,
+  res: express.Response
+) => {
+  const transactionImportResult = await await BudgetInstitution.getAllInstitutions(
+    req.userId
+  )
+    .then((institutions) =>
+      Promise.all(
+        institutions.map((institution) =>
+          getPlaidTransactions(
+            institution.plaidAccessToken,
+            institution.updatedAt.toISOString().slice(0, 10)
+          )
+        )
+      )
+    )
+    .then((transactions) =>
+      [].concat(
+        ...transactions.map((transactionList) => transactionList.transactions)
+      )
+    )
+    .then((transactions) =>
+      BudgetTransaction.importTransactions(req.userId, transactions)
+    );
 
-//   const startDate = req.query.startDate as string;
-//   const endDate =
-//     (req.query.endDate as string) || new Date().toISOString().slice(0, 10);
-
-//   if (startDate) {
-//     response = await plaid
-//       .getPlaidClient()
-//       .getTransactions(req.query.token as string, startDate, endDate); // access token
-//   } else {
-//     response = await plaid
-//       .getPlaidClient()
-//       .getAccounts(req.query.token as string);
-//   }
-//   return res.status(200).json(response);
-// };
+  return res.status(200).json({ result: transactionImportResult.length });
+};

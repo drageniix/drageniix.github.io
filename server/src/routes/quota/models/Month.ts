@@ -43,7 +43,10 @@ export default class BudgetMonth extends FireBaseModel {
       userId,
     } = explicit || snapshot.data();
 
-    this.date = (snapshot && date.toDate()) || new Date(date);
+    this.date =
+      (snapshot && date && date.toDate()) ||
+      (date && new Date(date)) ||
+      new Date();
     this.categories = categories;
     this.activity = activity || 0;
     this.available = available || 0;
@@ -169,9 +172,9 @@ export default class BudgetMonth extends FireBaseModel {
         .startAt(startDate)
         .endBefore(endDate)
         .get()
-        .then((month) =>
-          month.docs.length === 1
-            ? new BudgetMonth({ snapshot: month.docs[0] })
+        .then((months) =>
+          months.docs.length === 1
+            ? new BudgetMonth({ snapshot: months.docs[0] })
             : new BudgetMonth({
                 explicit: { date: startDate, userId: userRef },
               }).post()

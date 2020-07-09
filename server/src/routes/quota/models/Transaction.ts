@@ -1,4 +1,5 @@
 import { firestore } from "firebase-admin";
+import { Transaction } from "plaid";
 import {
   CollectionTypes,
   documentReferenceType,
@@ -58,7 +59,10 @@ export default class BudgetTransaction extends FireBaseModel {
       plaidTransactionId,
     } = explicit || snapshot.data();
 
-    this.date = (snapshot && date && date.toDate()) || new Date(date);
+    this.date =
+      (snapshot && date && date.toDate()) ||
+      (date && new Date(date)) ||
+      new Date();
     this.amount = amount || 0;
     this.memo = memo;
     this.cleared = cleared || false;
@@ -273,6 +277,58 @@ export default class BudgetTransaction extends FireBaseModel {
     return getDocumentReference(userRef, ref, CollectionTypes.TRANSACTIONS)
       .get()
       .then((transaction) => new BudgetTransaction({ snapshot: transaction }));
+  }
+
+  static async importTransactions(
+    userRef: firestore.DocumentReference,
+    transactions: Transaction[]
+  ) {
+    return Promise.all(
+      transactions.map(async (transaction) => {
+        const account = await BudgetAccount.getAccount(userRef, {
+          plaidAccountId: transaction.account_id,
+        });
+
+        console.log(account.name);
+
+        const category = await BudgetCategory.getCategory(userRef, {
+          description: transaction.category,
+        });
+
+        console.log(category.name);
+
+        const existingPayee = await BudgetTransactionPayee.getPayee(userRef, {
+          plaidPayeeName: transaction.name,
+        });
+        const payee =
+          existingPayee ||
+          (await new BudgetTransactionPayee({
+            explicit: {
+              name: transaction.name,
+              originalName: transaction.name,
+              userId: userRef,
+              defaultCategoryId: category.id,
+            },
+          }).post());
+
+        console.log(existingPayee === payee, payee.name);
+
+        return new BudgetTransaction({
+          explicit: {
+            accountId: account.id,
+            accountName: account.name,
+            amount: transaction.amount,
+            cleared: !transaction.pending,
+            date: new Date(transaction.date),
+            payeeId: payee.id,
+            payeeName: payee.name,
+            userId: userRef,
+            categoryId: category.id,
+            categoryName: category.name,
+          },
+        }).post();
+      })
+    );
   }
 }
 
