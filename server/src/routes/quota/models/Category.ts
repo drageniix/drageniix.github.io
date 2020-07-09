@@ -6,6 +6,7 @@ import {
   FireBaseModel,
   getDocumentReference,
 } from "../middleware/firebase";
+import { getPlaidCategories } from "../middleware/plaid";
 import BudgetMonth from "./Month";
 import BudgetMonthCategory from "./MonthCategory";
 import BudgetTransaction from "./Transaction";
@@ -21,6 +22,7 @@ export default class BudgetCategory extends FireBaseModel {
   name: string;
   originalName: string;
   subCategories: string[];
+  subSubCategories: string[];
   note?: string;
   userId?: firestore.DocumentReference;
 
@@ -48,6 +50,7 @@ export default class BudgetCategory extends FireBaseModel {
       note,
       userId,
       subCategories,
+      subSubCategories,
     } = explicit || snapshot.data();
 
     this.goalCreationMonth =
@@ -65,6 +68,7 @@ export default class BudgetCategory extends FireBaseModel {
     this.note = note;
     this.userId = userId;
     this.subCategories = subCategories;
+    this.subSubCategories = subSubCategories;
   }
 
   getFormattedResponse(): BudgetCategoryDisplayProperties {
@@ -80,6 +84,7 @@ export default class BudgetCategory extends FireBaseModel {
       originalName: this.originalName,
       note: this.note,
       subCategories: this.subCategories,
+      subSubCategories: this.subSubCategories,
       userId: this.userId && this.userId.id,
     });
   }
@@ -96,6 +101,7 @@ export default class BudgetCategory extends FireBaseModel {
       originalName: this.originalName,
       note: this.note,
       subCategories: this.subCategories,
+      subSubCategories: this.subSubCategories,
       userId: this.userId,
     });
   }
@@ -204,6 +210,47 @@ export default class BudgetCategory extends FireBaseModel {
         );
     } else return null;
   }
+
+  static async addAllCategoriesToUser(userRef: firestore.DocumentReference) {
+    let categoryMap: {
+      [key: string]: { sub: string[]; subSub: string[] };
+    } = {};
+    await getPlaidCategories().then(({ categories }) => {
+      categories.forEach((category) => {
+        if (categoryMap[category.hierarchy[0]]) {
+          category.hierarchy.forEach((hierarchy) => {
+            hierarchy[1] &&
+              !categoryMap[category.hierarchy[0]].sub.includes(hierarchy[1]) &&
+              categoryMap[category.hierarchy[0]].sub.push(hierarchy[1]);
+            hierarchy[2] &&
+              !categoryMap[category.hierarchy[0]].subSub.includes(
+                hierarchy[2]
+              ) &&
+              categoryMap[category.hierarchy[0]].subSub.push(hierarchy[2]);
+          });
+        } else {
+          categoryMap[category.hierarchy[0]] = {
+            sub: [category.hierarchy[1]],
+            subSub: [category.hierarchy[2]],
+          };
+        }
+      });
+
+      return Promise.all(
+        Object.entries(categoryMap).map(([key, value]) =>
+          new BudgetCategory({
+            explicit: {
+              name: key,
+              originalName: key,
+              subCategories: value.sub,
+              subSubCategories: value.subSub,
+              userId: userRef,
+            },
+          }).post()
+        )
+      );
+    });
+  }
 }
 
 type BudgetCategoryInternalProperties = {
@@ -218,6 +265,7 @@ type BudgetCategoryInternalProperties = {
   originalName?: string;
   note?: string;
   subCategories?: string[];
+  subSubCategories?: string[];
   userId?: firestore.DocumentReference;
 };
 
@@ -233,5 +281,6 @@ type BudgetCategoryDisplayProperties = {
   originalName?: string;
   note?: string;
   subCategories?: string[];
+  subSubCategories?: string[];
   userId?: string;
 };

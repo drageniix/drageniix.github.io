@@ -9,7 +9,7 @@ let io;
 exports.default = {
     init(server) {
         io = socket_io_1.default(server);
-        io.on("connection", socket => {
+        io.on("connection", (socket) => {
             logger_1.default.info("Server socket connected");
             socket.on("disconnect", () => logger_1.default.info("Server socket disconnected."));
         });
@@ -18,5 +18,5 @@ exports.default = {
         if (!io)
             throw new Error("No active websocket.");
         return io;
-    }
+    },
 };

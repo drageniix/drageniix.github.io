@@ -292,7 +292,7 @@ export default class BudgetTransaction extends FireBaseModel {
         console.log(account.name);
 
         const category = await BudgetCategory.getCategory(userRef, {
-          description: transaction.category,
+          plaidCategoryName: transaction.category,
         });
 
         console.log(category.name);
