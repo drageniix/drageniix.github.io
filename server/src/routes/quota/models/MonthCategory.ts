@@ -1,13 +1,13 @@
 import { firestore } from "firebase-admin";
-import db, {
+import {
   CollectionTypes,
   filterUndefinedProperties,
   FireBaseModel,
   firebaseStorageTypes,
   getDocumentReference,
 } from "../middleware/firebase";
-import BudgetCategory from "./BudgetCategory";
-import BudgetMonth from "./BudgetMonth";
+import BudgetCategory from "./Category";
+import BudgetMonth from "./Month";
 
 export default class BudgetMonthCategory extends FireBaseModel {
   id: firestore.DocumentReference;
@@ -17,6 +17,7 @@ export default class BudgetMonthCategory extends FireBaseModel {
   categoryId: firestore.DocumentReference;
   categoryName?: string;
   monthId?: firestore.DocumentReference;
+  userId?: firestore.DocumentReference;
 
   constructor({
     explicit,
@@ -30,8 +31,15 @@ export default class BudgetMonthCategory extends FireBaseModel {
       snapshot,
     });
 
-    const { activity, budgeted, balance, monthId, categoryId, categoryName } =
-      explicit || snapshot.data();
+    const {
+      activity,
+      budgeted,
+      balance,
+      monthId,
+      categoryId,
+      categoryName,
+      userId,
+    } = explicit || snapshot.data();
 
     this.activity = activity || 0;
     this.balance = balance || 0;
@@ -39,6 +47,7 @@ export default class BudgetMonthCategory extends FireBaseModel {
     this.monthId = monthId;
     this.categoryId = categoryId;
     this.categoryName = categoryName;
+    this.userId = userId;
   }
 
   getFormattedResponse(): BudgetMonthCategoryDisplayProperties {
@@ -50,6 +59,7 @@ export default class BudgetMonthCategory extends FireBaseModel {
       categoryId: this.categoryId && this.categoryId.id,
       monthId: this.monthId && this.monthId.id,
       categoryName: this.categoryName,
+      userId: this.userId && this.userId.id,
     });
   }
 
@@ -61,6 +71,7 @@ export default class BudgetMonthCategory extends FireBaseModel {
       monthId: this.monthId,
       categoryId: this.categoryId,
       categoryName: this.categoryName,
+      userId: this.userId,
     });
   }
 
@@ -77,7 +88,9 @@ export default class BudgetMonthCategory extends FireBaseModel {
   }
 
   async updateBudget(budget: number): Promise<BudgetMonthCategory> {
-    const month = await BudgetMonth.getMonth({ ref: this.monthId });
+    const month = await BudgetMonth.getMonth(this.userId, {
+      ref: this.monthId,
+    });
     await month.updateBudget(this.budgeted, budget);
     this.budgeted = budget;
     return this.update();
@@ -87,7 +100,9 @@ export default class BudgetMonthCategory extends FireBaseModel {
     isIncome: boolean,
     amount: number
   ): Promise<BudgetMonthCategory> {
-    const month = await BudgetMonth.getMonth({ ref: this.monthId });
+    const month = await BudgetMonth.getMonth(this.userId, {
+      ref: this.monthId,
+    });
     await month.updateActivity(isIncome, amount);
 
     this.activity += amount;
@@ -96,8 +111,12 @@ export default class BudgetMonthCategory extends FireBaseModel {
     return this.update();
   }
 
-  async getFullyPopulatedMonthCategory(): Promise<firebaseStorageTypes> {
-    const category = await BudgetCategory.getCategory(this.categoryId);
+  async getFullyPopulatedMonthCategory(
+    userRef: firestore.DocumentReference
+  ): Promise<firebaseStorageTypes> {
+    const category = await BudgetCategory.getCategory(userRef, {
+      categoryRef: this.categoryId,
+    });
     return filterUndefinedProperties({
       ...this.toFireStore(),
       ...category.toFireStore(),
@@ -111,13 +130,23 @@ export default class BudgetMonthCategory extends FireBaseModel {
     return this;
   }
 
-  static async getAllMonthCategories({
-    month,
-  }: {
-    month: string | BudgetMonth;
-  }): Promise<BudgetMonthCategory[]> {
+  async post(): Promise<BudgetMonthCategory> {
+    await this.postInternal(
+      this.monthId.collection(CollectionTypes.MONTH_CATEGORIES)
+    );
+    return this;
+  }
+
+  static async getAllMonthCategories(
+    userRef: firestore.DocumentReference,
+    {
+      month,
+    }: {
+      month: string | BudgetMonth;
+    }
+  ): Promise<BudgetMonthCategory[]> {
     const monthCategoryCollectionReference = getDocumentReference(
-      db.getDB(),
+      userRef,
       month,
       CollectionTypes.MONTHS
     ).collection(CollectionTypes.MONTH_CATEGORIES);
@@ -131,21 +160,24 @@ export default class BudgetMonthCategory extends FireBaseModel {
       );
   }
 
-  static async getMonthCategory({
-    month,
-    category,
-  }: {
-    month: string | BudgetMonth;
-    category: string | BudgetCategory;
-  }): Promise<BudgetMonthCategory> {
+  static async getMonthCategory(
+    userRef: firestore.DocumentReference,
+    {
+      month,
+      category,
+    }: {
+      month: string | BudgetMonth;
+      category: string | BudgetCategory;
+    }
+  ): Promise<BudgetMonthCategory> {
     const monthCategoryCollectionReference = getDocumentReference(
-      db.getDB(),
+      userRef,
       month,
       CollectionTypes.MONTHS
     );
 
     const categoryReference = getDocumentReference(
-      db.getDB(),
+      userRef,
       category,
       CollectionTypes.CATEGORIES
     );
@@ -169,6 +201,7 @@ type BudgetMonthCategoryInternalProperties = {
   monthId?: firestore.DocumentReference;
   categoryId?: firestore.DocumentReference;
   categoryName?: string;
+  userId?: firestore.DocumentReference;
 };
 
 type BudgetMonthCategoryDisplayProperties = {
@@ -179,4 +212,5 @@ type BudgetMonthCategoryDisplayProperties = {
   monthId?: string;
   categoryId?: string;
   categoryName?: string;
+  userId?: string;
 };

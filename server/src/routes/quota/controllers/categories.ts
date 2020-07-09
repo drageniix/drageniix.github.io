@@ -1,36 +1,37 @@
 import express from "express";
-import BudgetCategory from "../models/BudgetCategory";
+import { CustomRequest } from "../../../middleware/express";
+import BudgetCategory from "../models/Category";
 
 export const getCategories = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  BudgetCategory.getAllCategories().then((categories) =>
+  BudgetCategory.getAllCategories(req.userId).then((categories) =>
     res
       .status(200)
       .json(categories.map((category) => category.getFormattedResponse()))
   );
 
 export const postCategory = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  new BudgetCategory({ explicit: req.body })
+  new BudgetCategory({ explicit: { ...req.body, userId: req.userId } })
     .post()
     .then((category) => res.status(200).json(category.getFormattedResponse()));
 
 export const getCategory = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  BudgetCategory.getCategory(req.params.categoryId).then((category) =>
-    res.status(200).json(category.getFormattedResponse())
-  );
+  BudgetCategory.getCategory(req.userId, {
+    categoryRef: req.params.categoryId,
+  }).then((category) => res.status(200).json(category.getFormattedResponse()));
 
 export const putCategory = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  BudgetCategory.getCategory(req.params.categoryId)
+  BudgetCategory.getCategory(req.userId, { categoryRef: req.params.categoryId })
     .then((category) => category.updateCategory({ name: req.body.name }))
     .then((category) => res.status(200).json(category.getFormattedResponse()));

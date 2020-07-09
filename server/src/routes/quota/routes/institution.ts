@@ -1,14 +1,10 @@
 import express from "express";
 import { asyncWrapper } from "../../../middleware/express";
-import * as plaidControllers from "../controllers/plaid";
+import * as plaidControllers from "../controllers/institution";
 import { isAuth } from "../middleware/common";
 
 const router = express.Router({ mergeParams: true });
 
-router.post(
-  "/token",
-  isAuth,
-  asyncWrapper(plaidControllers.createInstituition)
-);
+router.post("/", isAuth, asyncWrapper(plaidControllers.createInstituition));
 
 export default router;

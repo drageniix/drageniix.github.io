@@ -1,4 +1,5 @@
 import express from "express";
+import { firestore } from "firebase-admin";
 import logger from "./logger";
 
 export type Error = {
@@ -11,12 +12,12 @@ export type Error = {
 
 export interface CustomRequest extends express.Request {
   io: SocketIO.Server;
-  userId: string;
+  userId: firestore.DocumentReference;
   privilege: string;
 }
 
 export const asyncWrapper = (fn: Function) => async (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response,
   next: express.NextFunction
 ): Promise<void | express.Response> => {
@@ -24,12 +25,13 @@ export const asyncWrapper = (fn: Function) => async (
     const response = await fn(req, res, next);
     return Promise.resolve(response);
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 };
 
 export const handle400Errors = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response,
   next: express.NextFunction
 ): express.NextFunction | void =>
@@ -55,9 +57,10 @@ export const handleErrors = (
       error.name ||
       (typeof error === "string" && error) ||
       "Internal Server Error",
-    data: (error.data && Array.isArray(error.data) && [error.data].flat()) || [
-      error.data,
-    ],
+    data:
+      (error.data && Array.isArray(error.data) && [error.data].flat()) ||
+      (error.data && [error.data]) ||
+      [],
   };
   logger.error(
     `STATUS ${err.code}: ${req.method} ${req.url} --- ${error.message}`

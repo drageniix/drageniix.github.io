@@ -1,11 +1,12 @@
 import express from "express";
-import BudgetTransaction from "../models/BudgetTransaction";
+import { CustomRequest } from "../../../middleware/express";
+import BudgetTransaction from "../models/Transaction";
 
 export const getTransactions = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  BudgetTransaction.getAllTransactions().then((transactions) =>
+  BudgetTransaction.getAllTransactions(req.userId).then((transactions) =>
     res
       .status(200)
       .json(
@@ -14,30 +15,31 @@ export const getTransactions = (
   );
 
 export const postTransaction = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  new BudgetTransaction({ explicit: req.body })
+  new BudgetTransaction({ explicit: { ...req.body, userId: req.userId } })
     .post()
     .then((transaction) =>
       res.status(200).json(transaction.getFormattedResponse())
     );
 
 export const getTransaction = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
   BudgetTransaction.getTransaction(
+    req.userId,
     req.params.transactionId
   ).then((transaction) =>
     res.status(200).json(transaction.getFormattedResponse())
   );
 
 export const putTransaction = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  BudgetTransaction.getTransaction(req.params.transactionId)
+  BudgetTransaction.getTransaction(req.userId, req.params.transactionId)
     .then((transaction) =>
       transaction.updateTransaction({
         amount: req.body.amount,

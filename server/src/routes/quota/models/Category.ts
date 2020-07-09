@@ -1,15 +1,14 @@
 import { firestore } from "firebase-admin";
-import db, {
+import {
   CollectionTypes,
   documentReferenceType,
   filterUndefinedProperties,
   FireBaseModel,
   getDocumentReference,
 } from "../middleware/firebase";
-import BudgetCategoryGroup from "./BudgetCategoryGroup";
-import BudgetMonth from "./BudgetMonth";
-import BudgetMonthCategory from "./BudgetMonthCategory";
-import BudgetTransaction from "./BudgetTransaction";
+import BudgetMonth from "./Month";
+import BudgetMonthCategory from "./MonthCategory";
+import BudgetTransaction from "./Transaction";
 
 export default class BudgetCategory extends FireBaseModel {
   id?: firestore.DocumentReference;
@@ -18,11 +17,11 @@ export default class BudgetCategory extends FireBaseModel {
   goalTargetMonth?: Date;
   goalPriority?: number;
   goalType?: string;
-  groupId: firestore.DocumentReference | string;
-  groupName?: string;
   active: boolean;
   name: string;
+  originalName: string;
   note?: string;
+  userId?: firestore.DocumentReference;
 
   constructor({
     explicit,
@@ -42,11 +41,11 @@ export default class BudgetCategory extends FireBaseModel {
       goalTargetMonth,
       goalType,
       goalPriority,
-      groupId,
-      groupName,
       active,
       name,
+      originalName,
       note,
+      userId,
     } = explicit || snapshot.data();
 
     this.goalCreationMonth =
@@ -58,11 +57,11 @@ export default class BudgetCategory extends FireBaseModel {
       (goalTargetMonth && new Date(goalTargetMonth));
     this.goalType = goalType;
     this.goalPriority = goalPriority;
-    this.groupId = groupId;
-    this.groupName = groupName;
     this.active = active || true;
     this.name = name;
+    this.originalName = originalName;
     this.note = note;
+    this.userId = userId;
   }
 
   getFormattedResponse(): BudgetCategoryDisplayProperties {
@@ -73,12 +72,11 @@ export default class BudgetCategory extends FireBaseModel {
       goalTargetMonth: this.goalTargetMonth,
       goalType: this.goalType,
       goalPriority: this.goalPriority,
-      groupId:
-        (typeof this.groupId === "object" && this.groupId.id) || this.groupId,
-      groupName: this.groupName,
       active: this.active,
       name: this.name,
+      originalName: this.originalName,
       note: this.note,
+      userId: this.userId && this.userId.id,
     });
   }
 
@@ -89,16 +87,12 @@ export default class BudgetCategory extends FireBaseModel {
       goalTargetMonth: this.goalTargetMonth,
       goalType: this.goalType,
       goalPriority: this.goalPriority,
-      groupId: this.groupId,
-      groupName: this.groupName,
       active: this.active,
       name: this.name,
+      originalName: this.originalName,
       note: this.note,
+      userId: this.userId,
     });
-  }
-
-  setLinkedValues({ groupName }: { groupName: string }): void {
-    this.groupName = groupName || this.groupName;
   }
 
   async update(): Promise<BudgetCategory> {
@@ -107,14 +101,9 @@ export default class BudgetCategory extends FireBaseModel {
   }
 
   async post(): Promise<BudgetCategory> {
-    const categoryGroup = await BudgetCategoryGroup.getCategoryGroup(
-      this.groupId
+    await super.postInternal(
+      this.userId.collection(CollectionTypes.CATEGORIES)
     );
-
-    this.groupId = categoryGroup.id;
-    this.groupName = categoryGroup.name;
-
-    await super.post(db.getDB().collection(CollectionTypes.CATEGORIES));
     return this;
   }
 
@@ -126,7 +115,7 @@ export default class BudgetCategory extends FireBaseModel {
   async updateName(name: string): Promise<BudgetCategory> {
     this.name = name;
 
-    await BudgetTransaction.getAllTransactions({
+    await BudgetTransaction.getAllTransactions(this.userId, {
       category: this,
     }).then((transactions) =>
       Promise.all(
@@ -139,11 +128,14 @@ export default class BudgetCategory extends FireBaseModel {
       )
     );
 
-    await BudgetMonth.getAllMonths()
+    await BudgetMonth.getAllMonths(this.userId)
       .then((months) =>
         Promise.all(
           months.map((month) =>
-            BudgetMonthCategory.getMonthCategory({ month, category: this })
+            BudgetMonthCategory.getMonthCategory(this.userId, {
+              month,
+              category: this,
+            })
           )
         )
       )
@@ -159,16 +151,16 @@ export default class BudgetCategory extends FireBaseModel {
     return this.update();
   }
 
-  static async getAllCategories({
-    group,
-  }: { group?: BudgetCategoryGroup } = {}): Promise<BudgetCategory[]> {
-    let query = db
-      .getDB()
+  static async getAllCategories(
+    userRef: firestore.DocumentReference,
+    { description }: { description?: string[] } = {}
+  ): Promise<BudgetCategory[]> {
+    let query = userRef
       .collection(CollectionTypes.CATEGORIES)
       .where("active", "==", true);
 
-    if (group) {
-      query = query.where("groupId", "==", group.id);
+    if (description) {
+      query = query.where("originalName", "in", description);
     }
 
     return query
@@ -179,11 +171,33 @@ export default class BudgetCategory extends FireBaseModel {
   }
 
   static async getCategory(
-    ref: documentReferenceType
+    userRef: firestore.DocumentReference,
+    {
+      categoryRef,
+      description,
+    }: { categoryRef?: documentReferenceType; description?: string[] }
   ): Promise<BudgetCategory> {
-    return getDocumentReference(db.getDB(), ref, CollectionTypes.CATEGORIES)
-      .get()
-      .then((category) => new BudgetCategory({ snapshot: category }));
+    if (description) {
+      return userRef
+        .collection(CollectionTypes.CATEGORIES)
+        .where("originalName", "in", description)
+        .get()
+        .then(
+          (categories) =>
+            categories.docs.length === 1 &&
+            new BudgetCategory({ snapshot: categories.docs[0] })
+        );
+    } else if (categoryRef) {
+      return getDocumentReference(
+        userRef,
+        categoryRef,
+        CollectionTypes.CATEGORIES
+      )
+        .get()
+        .then(
+          (category) => category && new BudgetCategory({ snapshot: category })
+        );
+    } else return null;
   }
 }
 
@@ -194,11 +208,11 @@ type BudgetCategoryInternalProperties = {
   goalTargetMonth?: Date;
   goalType?: string;
   goalPriority?: string;
-  groupId?: firestore.DocumentReference;
-  groupName?: string;
   active?: boolean;
   name?: string;
+  originalName?: string;
   note?: string;
+  userId?: firestore.DocumentReference;
 };
 
 type BudgetCategoryDisplayProperties = {
@@ -208,9 +222,9 @@ type BudgetCategoryDisplayProperties = {
   goalTargetMonth?: Date;
   goalType?: string;
   goalPriority?: string;
-  groupId?: string;
-  groupName?: string;
   active?: boolean;
   name?: string;
+  originalName?: string;
   note?: string;
+  userId?: string;
 };

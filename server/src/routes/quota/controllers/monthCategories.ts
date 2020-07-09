@@ -1,11 +1,12 @@
 import express from "express";
-import BudgetMonthCategory from "../models/BudgetMonthCategory";
+import { CustomRequest } from "../../../middleware/express";
+import BudgetMonthCategory from "../models/MonthCategory";
 
 export const getMonthCategories = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  BudgetMonthCategory.getAllMonthCategories({
+  BudgetMonthCategory.getAllMonthCategories(req.userId, {
     month: req.params.monthId,
   }).then((monthCategories) =>
     res
@@ -18,10 +19,10 @@ export const getMonthCategories = (
   );
 
 export const getMonthCategory = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  BudgetMonthCategory.getMonthCategory({
+  BudgetMonthCategory.getMonthCategory(req.userId, {
     month: req.params.monthId,
     category: req.params.categoryId,
   }).then((monthCategory) =>
@@ -29,10 +30,10 @@ export const getMonthCategory = (
   );
 
 export const putMonthCategory = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response
 ): Promise<void | express.Response> =>
-  BudgetMonthCategory.getMonthCategory({
+  BudgetMonthCategory.getMonthCategory(req.userId, {
     month: req.params.monthId,
     category: req.params.categoryId,
   })

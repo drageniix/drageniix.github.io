@@ -1,15 +1,14 @@
 import plaid from "plaid";
 
 let client: plaid.Client;
-
 export default {
-  init: (): void => {
+  init: (plaidConfigString: string): void => {
     const {
       PLAID_CLIENT_ID,
       PLAID_SECRET,
       PLAID_PUBLIC_KEY,
       PLAID_ENV,
-    } = JSON.parse(process.env.PLAID_CONFIG);
+    } = JSON.parse(plaidConfigString);
 
     client = new plaid.Client(
       PLAID_CLIENT_ID,

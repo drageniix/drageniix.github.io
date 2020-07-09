@@ -6,7 +6,11 @@ import db, {
   FireBaseModel,
   getDocumentReference,
 } from "../middleware/firebase";
-import { Privilege } from "../middleware/user";
+
+export enum Privilege {
+  ADMIN,
+  USER,
+}
 
 export default class User extends FireBaseModel {
   name: string;
@@ -29,7 +33,7 @@ export default class User extends FireBaseModel {
     this.name = name;
     this.password = password;
     this.email = email;
-    this.privilege = privilege;
+    this.privilege = privilege || Privilege.USER;
   }
 
   getFormattedResponse(): UserDisplayProperties {
@@ -66,7 +70,7 @@ export default class User extends FireBaseModel {
   }
 
   async post(): Promise<User> {
-    await super.post(db.getDB().collection(CollectionTypes.USERS));
+    await super.postInternal(db.getDB().collection(CollectionTypes.USERS));
     return this;
   }
 

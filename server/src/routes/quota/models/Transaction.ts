@@ -1,16 +1,16 @@
 import { firestore } from "firebase-admin";
-import db, {
+import {
   CollectionTypes,
   documentReferenceType,
   filterUndefinedProperties,
   FireBaseModel,
   getDocumentReference,
 } from "../middleware/firebase";
-import BudgetAccount from "../models/BudgetAccount";
-import BudgetCategory from "./BudgetCategory";
-import BudgetMonth from "./BudgetMonth";
-import BudgetMonthCategory from "./BudgetMonthCategory";
-import BudgetTransactionPayee from "./BudgetTransactionPayee";
+import BudgetAccount from "./Account";
+import BudgetCategory from "./Category";
+import BudgetMonth from "./Month";
+import BudgetMonthCategory from "./MonthCategory";
+import BudgetTransactionPayee from "./Payee";
 
 export default class BudgetTransaction extends FireBaseModel {
   id: firestore.DocumentReference;
@@ -25,6 +25,9 @@ export default class BudgetTransaction extends FireBaseModel {
   payeeName?: string;
   categoryId?: string | firestore.DocumentReference;
   categoryName?: string;
+  userId?: firestore.DocumentReference;
+  institutionId?: firestore.DocumentReference;
+  plaidTransactionId?: string;
 
   constructor({
     explicit,
@@ -50,6 +53,9 @@ export default class BudgetTransaction extends FireBaseModel {
       payeeName,
       categoryId,
       categoryName,
+      userId,
+      institutionId,
+      plaidTransactionId,
     } = explicit || snapshot.data();
 
     this.date = (snapshot && date && date.toDate()) || new Date(date);
@@ -63,6 +69,9 @@ export default class BudgetTransaction extends FireBaseModel {
     this.payeeName = payeeName;
     this.categoryId = categoryId;
     this.categoryName = categoryName;
+    this.userId = userId;
+    this.institutionId = institutionId;
+    this.plaidTransactionId = plaidTransactionId;
   }
 
   getFormattedResponse(): BudgetTransactionDisplayProperties {
@@ -84,6 +93,9 @@ export default class BudgetTransaction extends FireBaseModel {
         (typeof this.categoryId === "object" && this.categoryId.id) ||
         this.categoryId,
       categoryName: this.categoryName,
+      userId: this.userId && this.userId.id,
+      institutionId: this.institutionId && this.institutionId.id,
+      plaidTransactionId: this.plaidTransactionId,
     });
   }
 
@@ -100,6 +112,9 @@ export default class BudgetTransaction extends FireBaseModel {
       payeeName: this.payeeName,
       categoryId: this.categoryId,
       categoryName: this.categoryName,
+      userId: this.userId,
+      institutionId: this.institutionId,
+      plaidTransactionId: this.plaidTransactionId,
     });
   }
 
@@ -118,12 +133,17 @@ export default class BudgetTransaction extends FireBaseModel {
   }
 
   async updateCategoryAmount(amount: number): Promise<BudgetTransaction> {
-    const month = await BudgetMonth.getMonth({ date: this.date });
-    const category = await BudgetCategory.getCategory(this.categoryId);
-    const monthCategory = await BudgetMonthCategory.getMonthCategory({
-      month,
-      category,
+    const month = await BudgetMonth.getMonth(this.userId, { date: this.date });
+    const category = await BudgetCategory.getCategory(this.userId, {
+      categoryRef: this.categoryId,
     });
+    const monthCategory = await BudgetMonthCategory.getMonthCategory(
+      this.userId,
+      {
+        month,
+        category,
+      }
+    );
 
     await monthCategory.updateActivity(this.amount > 0, amount);
     this.categoryId = monthCategory.categoryId;
@@ -132,7 +152,9 @@ export default class BudgetTransaction extends FireBaseModel {
   }
 
   async updateAccountAmount(amount: number): Promise<BudgetTransaction> {
-    const account = await BudgetAccount.getAccount(this.accountId);
+    const account = await BudgetAccount.getAccount(this.userId, {
+      accountRef: this.accountId,
+    });
     account.currentBalance += amount;
     account.availableBalance += amount;
     await account.update();
@@ -158,7 +180,9 @@ export default class BudgetTransaction extends FireBaseModel {
   async updatePayee(
     payeeId: documentReferenceType
   ): Promise<BudgetTransaction> {
-    const payee = await BudgetTransactionPayee.getPayee(payeeId);
+    const payee = await BudgetTransactionPayee.getPayee(this.userId, {
+      payeeRef: payeeId,
+    });
     this.payeeId = payee.id;
     this.payeeName = payee.name;
     return this.update();
@@ -185,6 +209,10 @@ export default class BudgetTransaction extends FireBaseModel {
   }
 
   async post(): Promise<BudgetTransaction> {
+    await super.postInternal(
+      this.userId.collection(CollectionTypes.TRANSACTIONS)
+    );
+
     if (this.accountId) {
       await this.updateAccountAmount(this.amount);
     }
@@ -197,23 +225,24 @@ export default class BudgetTransaction extends FireBaseModel {
       await this.updateCategoryAmount(this.amount);
     }
 
-    await super.post(db.getDB().collection(CollectionTypes.TRANSACTIONS));
     return this;
   }
 
-  static async getAllTransactions({
-    account,
-    payee,
-    category,
-    limit,
-  }: {
-    account?: BudgetAccount;
-    payee?: BudgetTransactionPayee;
-    category?: BudgetCategory;
-    limit?: number;
-  } = {}): Promise<BudgetTransaction[]> {
-    let query: firestore.Query = db
-      .getDB()
+  static async getAllTransactions(
+    userRef: firestore.DocumentReference,
+    {
+      account,
+      payee,
+      category,
+      limit,
+    }: {
+      account?: BudgetAccount;
+      payee?: BudgetTransactionPayee;
+      category?: BudgetCategory;
+      limit?: number;
+    } = {}
+  ): Promise<BudgetTransaction[]> {
+    let query: firestore.Query = userRef
       .collection(CollectionTypes.TRANSACTIONS)
       .orderBy("date", "asc");
 
@@ -238,9 +267,10 @@ export default class BudgetTransaction extends FireBaseModel {
   }
 
   static async getTransaction(
+    userRef: firestore.DocumentReference,
     ref: documentReferenceType
   ): Promise<BudgetTransaction> {
-    return getDocumentReference(db.getDB(), ref, CollectionTypes.TRANSACTIONS)
+    return getDocumentReference(userRef, ref, CollectionTypes.TRANSACTIONS)
       .get()
       .then((transaction) => new BudgetTransaction({ snapshot: transaction }));
   }
@@ -259,6 +289,7 @@ export type BudgetTransactionInternalProperties = {
   payeeName?: string;
   categoryId?: firestore.DocumentReference;
   categoryName?: string;
+  userId?: firestore.DocumentReference;
 };
 
 export type BudgetTransactionDisplayProperties = {
@@ -274,4 +305,5 @@ export type BudgetTransactionDisplayProperties = {
   payeeName?: string;
   categoryId?: string;
   categoryName?: string;
+  userId?: string;
 };

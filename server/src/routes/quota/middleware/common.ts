@@ -1,7 +1,8 @@
 import express from "express";
-import { validationResult } from "express-validator/check";
+import { validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import { CustomRequest, Error } from "../../../middleware/express";
+import User from "../models/User";
 
 export const isAuth = (
   req: CustomRequest,
@@ -16,7 +17,7 @@ export const isAuth = (
       const { sub } = decodedToken as {
         sub: string;
       };
-      req.userId = sub;
+      req.userId = User.getUserReferenceById(sub);
       return next();
     }
   }
@@ -29,7 +30,7 @@ export const isAuth = (
 };
 
 export const inputValidation = (
-  req: express.Request,
+  req: CustomRequest,
   res: express.Response,
   next: express.NextFunction
 ) => {
@@ -40,7 +41,7 @@ export const inputValidation = (
       statusCode: 422,
     };
 
-    error.data = errors.array({ onlyFirstError: true });
+    error.data = errors.array();
     return next(error);
   }
   return next();

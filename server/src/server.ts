@@ -1,29 +1,18 @@
-import http, { Server } from "http";
+import http from "http";
 import App from "./App";
-import db from "./middleware/firebase";
-import logger from "./middleware/logger";
-import plaid from "./middleware/plaid";
-import socket from "./middleware/socket";
+import initiateServer from "./middleware";
 
-(function initiateServer(): Server {
+(function (): void {
   if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
   }
 
   if (!process.env.NODE_ENV) {
-    throw "No Environmentt Set!";
+    throw "No Environment Set!";
   }
 
   const { app } = new App();
-  const port = process.env.PORT;
   const server = http.createServer(app);
 
-  db.init();
-  plaid.init();
-  socket.init(server);
-
-  server.listen(port, () => {
-    logger.info(`Server open on port ${port}`);
-  });
-  return server;
+  initiateServer(server);
 })();

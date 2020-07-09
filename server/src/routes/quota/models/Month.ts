@@ -1,13 +1,13 @@
 import { firestore } from "firebase-admin";
-import db, {
+import {
   CollectionTypes,
   documentReferenceType,
   filterUndefinedProperties,
   FireBaseModel,
   getDocumentReference,
 } from "../middleware/firebase";
-import BudgetCategory from "./BudgetCategory";
-import BudgetMonthCategory from "./BudgetMonthCategory";
+import BudgetCategory from "./Category";
+import BudgetMonthCategory from "./MonthCategory";
 
 export default class BudgetMonth extends FireBaseModel {
   id: firestore.DocumentReference;
@@ -18,6 +18,7 @@ export default class BudgetMonth extends FireBaseModel {
   available: number; //todo
   overBudget: number; //todo
   categories: firestore.CollectionReference;
+  userId?: firestore.DocumentReference;
 
   constructor({
     explicit,
@@ -39,6 +40,7 @@ export default class BudgetMonth extends FireBaseModel {
       income,
       overBudget,
       categories,
+      userId,
     } = explicit || snapshot.data();
 
     this.date = (snapshot && date.toDate()) || new Date(date);
@@ -49,11 +51,13 @@ export default class BudgetMonth extends FireBaseModel {
     this.income = income || 0;
     this.overBudget = overBudget || 0;
     this.categories = categories;
+    this.userId = userId;
   }
 
   getFormattedResponse(): BudgetMonthDisplayProperties {
     return filterUndefinedProperties({
       id: this.id && this.id.id,
+      userId: this.userId && this.userId.id,
       date: this.date.toDateString(),
       activity: this.activity,
       available: this.available,
@@ -71,6 +75,7 @@ export default class BudgetMonth extends FireBaseModel {
       budgeted: this.budgeted,
       income: this.income,
       overBudget: this.overBudget,
+      userId: this.userId,
     });
   }
 
@@ -106,9 +111,9 @@ export default class BudgetMonth extends FireBaseModel {
   }
 
   async post(): Promise<BudgetMonth> {
-    const allCategories = await BudgetCategory.getAllCategories();
+    const allCategories = await BudgetCategory.getAllCategories(this.userId);
 
-    await super.post(db.getDB().collection(CollectionTypes.MONTHS));
+    await super.postInternal(this.userId.collection(CollectionTypes.MONTHS));
 
     this.categories = this.id.collection(CollectionTypes.MONTH_CATEGORIES);
 
@@ -117,19 +122,21 @@ export default class BudgetMonth extends FireBaseModel {
         new BudgetMonthCategory({
           explicit: {
             monthId: this.id,
+            userId: this.userId,
             categoryId: category.id,
             categoryName: category.name,
           },
-        }).post(this.categories)
+        }).post()
       )
     );
 
     return this;
   }
 
-  static async getAllMonths(): Promise<BudgetMonth[]> {
-    return db
-      .getDB()
+  static async getAllMonths(
+    userRef: firestore.DocumentReference
+  ): Promise<BudgetMonth[]> {
+    return userRef
       .collection(CollectionTypes.MONTHS)
       .orderBy("date", "desc")
       .get()
@@ -138,13 +145,16 @@ export default class BudgetMonth extends FireBaseModel {
       );
   }
 
-  static async getMonth({
-    ref,
-    date,
-  }: {
-    ref?: documentReferenceType;
-    date?: Date;
-  }): Promise<BudgetMonth> {
+  static async getMonth(
+    userRef: firestore.DocumentReference,
+    {
+      ref,
+      date,
+    }: {
+      ref?: documentReferenceType;
+      date?: Date;
+    }
+  ): Promise<BudgetMonth> {
     if (date) {
       const startDate = new Date(date);
       startDate.setDate(1);
@@ -153,8 +163,7 @@ export default class BudgetMonth extends FireBaseModel {
       endDate.setMonth(startDate.getMonth() + 1);
 
       // search
-      return db
-        .getDB()
+      return userRef
         .collection(CollectionTypes.MONTHS)
         .orderBy("date")
         .startAt(startDate)
@@ -163,10 +172,12 @@ export default class BudgetMonth extends FireBaseModel {
         .then((month) =>
           month.docs.length === 1
             ? new BudgetMonth({ snapshot: month.docs[0] })
-            : new BudgetMonth({ explicit: { date: startDate } }).post()
+            : new BudgetMonth({
+                explicit: { date: startDate, userId: userRef },
+              }).post()
         );
     } else if (ref) {
-      return getDocumentReference(db.getDB(), ref, CollectionTypes.MONTHS)
+      return getDocumentReference(userRef, ref, CollectionTypes.MONTHS)
         .get()
         .then((month) => new BudgetMonth({ snapshot: month }));
     }
@@ -182,6 +193,7 @@ type BudgetMonthInternalProperties = {
   income?: number;
   overBudget?: number;
   categories?: firestore.CollectionReference;
+  userId?: firestore.DocumentReference;
 };
 
 type BudgetMonthDisplayProperties = {
@@ -193,4 +205,5 @@ type BudgetMonthDisplayProperties = {
   income?: number;
   overBudget?: number;
   categories?: string;
+  userId?: string;
 };

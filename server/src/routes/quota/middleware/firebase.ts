@@ -4,11 +4,17 @@ import db from "../../../middleware/firebase";
 export * from "../../../middleware/firebase";
 
 export enum CollectionTypes {
-  USERS = "users",
   QUOTA = "quota",
+  USERS = "users",
   INSTITUTION = "institution",
   PAYEES = "payees",
   ACCOUNTS = "accounts",
+  CATEGORIES = "categories",
+  CATEGORY_GROUPS = "category_groups",
+  MONTHS = "months",
+  MONTH_CATEGORIES = "categories",
+  TRANSACTIONS = "transactions",
+  SCHEDULED_TRANSACTIONS = "scheduled_transactions",
 }
 
 export default {
@@ -18,4 +24,84 @@ export default {
       .collection(CollectionTypes.QUOTA)
       .doc(process.env.NODE_ENV);
   },
+};
+
+export type displayTypes = {
+  [key: string]: string | number | boolean | Date;
+};
+
+export type firebaseStorageTypes = {
+  [key: string]:
+    | string
+    | string[]
+    | boolean
+    | number
+    | Date
+    | firestore.CollectionReference
+    | firestore.DocumentReference
+    | firestore.DocumentReference[];
+};
+
+export abstract class FireBaseModel {
+  id?: firestore.DocumentReference<firestore.DocumentData>;
+
+  constructor({
+    explicit,
+    snapshot,
+  }: {
+    explicit?: any; //eslint-disable-line
+    snapshot?: firestore.DocumentSnapshot;
+  }) {
+    this.id = (explicit && explicit.id) || (snapshot && snapshot.ref);
+  }
+
+  abstract getFormattedResponse(): displayTypes;
+  abstract toFireStore(): firebaseStorageTypes;
+
+  async delete(): Promise<FireBaseModel> {
+    await this.id.delete();
+    return this;
+  }
+
+  async update(): Promise<FireBaseModel> {
+    await this.id.update(this.toFireStore());
+    return this;
+  }
+
+  async postInternal(
+    collection: firestore.CollectionReference
+  ): Promise<FireBaseModel> {
+    this.id = await collection.add(this.toFireStore());
+    return this;
+  }
+}
+
+export type documentReferenceType =
+  | FireBaseModel
+  | string
+  | firestore.DocumentReference;
+
+export const getDocumentReference = (
+  db: firestore.DocumentReference,
+  ref: documentReferenceType,
+  collectionType?: string
+): firestore.DocumentReference => {
+  return (
+    (typeof ref === "string" && db.collection(collectionType).doc(ref)) ||
+    (ref instanceof FireBaseModel && ref.id) ||
+    (ref instanceof firestore.DocumentReference && ref)
+  );
+};
+
+export const filterUndefinedProperties = (
+  input: firebaseStorageTypes
+): firebaseStorageTypes => {
+  const filteredObject: firebaseStorageTypes = {};
+  Object.entries(input).forEach(([key, value]) => {
+    if (typeof value !== "undefined") {
+      filteredObject[key] = value;
+    }
+  });
+
+  return filteredObject;
 };

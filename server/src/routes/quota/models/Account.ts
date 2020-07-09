@@ -1,12 +1,13 @@
 import { firestore } from "firebase-admin";
-import BudgetTransactionPayee from "../../budget/models/BudgetTransactionPayee";
-import db, {
+import {
   CollectionTypes,
   documentReferenceType,
   filterUndefinedProperties,
   FireBaseModel,
   getDocumentReference,
 } from "../middleware/firebase";
+import BudgetTransactionPayee from "./Payee";
+import BudgetTransaction from "./Transaction";
 
 export default class BudgetAccount extends FireBaseModel {
   name: string;
@@ -21,6 +22,9 @@ export default class BudgetAccount extends FireBaseModel {
   transferPayeeId?: firestore.DocumentReference;
   transferPayeeName?: string;
   plaidAccountId?: string;
+  institutionId?: firestore.DocumentReference;
+  userId?: firestore.DocumentReference;
+  hidden?: boolean;
 
   constructor({
     explicit,
@@ -44,6 +48,9 @@ export default class BudgetAccount extends FireBaseModel {
       transferPayeeId,
       transferPayeeName,
       plaidAccountId,
+      institutionId,
+      userId,
+      hidden,
     } = explicit || (snapshot && snapshot.data());
 
     this.name = name;
@@ -52,12 +59,15 @@ export default class BudgetAccount extends FireBaseModel {
     this.currentBalance = currentBalance || 0;
     this.startingBalance = startingBalance || currentBalance || 0;
     this.note = note;
+    this.hidden = hidden || false;
     this.onBudget = onBudget || false;
     this.type = type;
     this.subtype = subtype;
     this.transferPayeeId = transferPayeeId;
     this.transferPayeeName = transferPayeeName;
     this.plaidAccountId = plaidAccountId;
+    this.institutionId = institutionId;
+    this.userId = userId;
   }
 
   getFormattedResponse(): BudgetAccountDisplayProperties {
@@ -75,6 +85,9 @@ export default class BudgetAccount extends FireBaseModel {
       transferPayeeId: this.transferPayeeId && this.transferPayeeId.id,
       transferPayeeName: this.transferPayeeName,
       plaidAccountId: this.plaidAccountId,
+      institutionId: this.institutionId && this.institutionId.id,
+      userId: this.userId && this.userId.id,
+      hidden: this.hidden,
     });
   }
 
@@ -92,6 +105,9 @@ export default class BudgetAccount extends FireBaseModel {
       transferPayeeId: this.transferPayeeId,
       transferPayeeName: this.transferPayeeName,
       plaidAccountId: this.plaidAccountId,
+      institutionId: this.institutionId,
+      userId: this.userId,
+      hidden: this.hidden,
     });
   }
 
@@ -102,41 +118,41 @@ export default class BudgetAccount extends FireBaseModel {
   async updateName(name: string): Promise<BudgetAccount> {
     this.name = name;
 
-    // TODO: transaction integration
-    // await BudgetTransaction.getAllTransactions({
-    //   account: this,
-    // }).then((transactions) =>
-    //   Promise.all(
-    //     transactions.map((transaction) => {
-    //       transaction.setLinkedValues({
-    //         accountName: this.name,
-    //       });
-    //       return transaction.update();
-    //     })
-    //   )
-    // );
+    await BudgetTransaction.getAllTransactions(this.userId, {
+      account: this,
+    }).then((transactions) =>
+      Promise.all(
+        transactions.map((transaction) => {
+          transaction.setLinkedValues({
+            accountName: this.name,
+          });
+          return transaction.update();
+        })
+      )
+    );
 
-    await BudgetTransactionPayee.getPayee(this.transferPayeeId).then(
-      (payee) => {
+    await BudgetTransactionPayee.getPayee(this.userId, {
+      payeeRef: this.transferPayeeId,
+    })
+      .then((payee) => {
         payee.setLinkedValues({ transferAccountName: this.name });
         this.transferPayeeName = payee.name;
         return payee.update();
-      }
-    );
-    // .then((payee) =>
-    //   BudgetTransaction.getAllTransactions({
-    //     payee,
-    //   }).then((transactions) =>
-    //     Promise.all(
-    //       transactions.map((transaction) => {
-    //         transaction.setLinkedValues({
-    //           payeeName: this.name,
-    //         });
-    //         return transaction.update();
-    //       })
-    //     )
-    //   )
-    // );
+      })
+      .then((payee) =>
+        BudgetTransaction.getAllTransactions(this.userId, {
+          payee,
+        }).then((transactions) =>
+          Promise.all(
+            transactions.map((transaction) => {
+              transaction.setLinkedValues({
+                payeeName: this.name,
+              });
+              return transaction.update();
+            })
+          )
+        )
+      );
 
     return this.update();
   }
@@ -152,13 +168,12 @@ export default class BudgetAccount extends FireBaseModel {
   }
 
   // Override
-  async post(
-    institutionAccountsRef: firestore.CollectionReference
-  ): Promise<BudgetAccount> {
+  async post(): Promise<BudgetAccount> {
     // Create equivalent payee for transfers
     const payeeName = `TRANSFER: ${this.name}`;
     const payee = await new BudgetTransactionPayee({
       explicit: {
+        userId: this.userId,
         name: payeeName,
       },
     }).post();
@@ -167,7 +182,7 @@ export default class BudgetAccount extends FireBaseModel {
     this.transferPayeeName = payeeName;
 
     // Create account in database to generate an id
-    await super.post(institutionAccountsRef);
+    await super.postInternal(this.userId.collection(CollectionTypes.ACCOUNTS));
 
     // Add account id and name to payee
     payee.setLinkedValues({
@@ -180,10 +195,45 @@ export default class BudgetAccount extends FireBaseModel {
     return this;
   }
 
-  static async getAccount(ref: documentReferenceType): Promise<BudgetAccount> {
-    return getDocumentReference(db.getDB(), ref, CollectionTypes.ACCOUNTS)
+  static async getAccount(
+    userRef: firestore.DocumentReference,
+    {
+      accountRef,
+      plaidAccountId,
+    }: {
+      accountRef?: documentReferenceType;
+      plaidAccountId?: string;
+    }
+  ): Promise<BudgetAccount> {
+    if (plaidAccountId) {
+      return userRef
+        .collection(CollectionTypes.ACCOUNTS)
+        .where("plaidAccountId", "==", plaidAccountId)
+        .get()
+        .then(
+          (accounts) =>
+            accounts.docs.length === 1 &&
+            new BudgetAccount({ snapshot: accounts.docs[0] })
+        );
+    } else if (accountRef) {
+      return getDocumentReference(userRef, accountRef, CollectionTypes.ACCOUNTS)
+        .get()
+        .then((account) => account && new BudgetAccount({ snapshot: account }));
+    } else return null;
+  }
+
+  static async getAllAccounts(
+    userRef: firestore.DocumentReference
+  ): Promise<BudgetAccount[]> {
+    let query = userRef
+      .collection(CollectionTypes.ACCOUNTS)
+      .where("hidden", "==", false);
+
+    return query
       .get()
-      .then((account) => new BudgetAccount({ snapshot: account }));
+      .then((categories) =>
+        categories.docs.map((snapshot) => new BudgetAccount({ snapshot }))
+      );
   }
 }
 
@@ -201,6 +251,8 @@ type BudgetAccountInternalProperties = {
   transferPayeeId?: firestore.DocumentReference;
   transferPayeeName?: string;
   plaidAccountId?: string;
+  institutionId?: firestore.DocumentReference;
+  userId?: firestore.DocumentReference;
 };
 
 type BudgetAccountDisplayProperties = {
@@ -217,4 +269,6 @@ type BudgetAccountDisplayProperties = {
   transferPayeeId?: string;
   transferPayeeName?: string;
   plaidAccountId?: string;
+  institutionId?: string;
+  userId?: string;
 };
