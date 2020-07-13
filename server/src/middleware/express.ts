@@ -25,7 +25,6 @@ export const asyncWrapper = (fn: Function) => async (
     const response = await fn(req, res, next);
     return Promise.resolve(response);
   } catch (err) {
-    console.log(err);
     return next(err);
   }
 };

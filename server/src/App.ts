@@ -1,12 +1,12 @@
 import express = require("express");
 import { json, urlencoded } from "body-parser";
+import quota from "./api/quota/routes";
 import {
   CustomRequest,
   handle400Errors,
   handleErrors,
 } from "./middleware/express";
 import io from "./middleware/socket";
-import quota from "./routes/quota/routes";
 
 export default class App {
   public app: express.Application;

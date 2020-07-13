@@ -1,6 +1,6 @@
 import { Server } from "http";
-import db from "./firebase";
 import logger from "./logger";
+import db from "./persistence";
 import plaid from "./plaid";
 import socket from "./socket";
 
