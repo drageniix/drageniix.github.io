@@ -27,20 +27,6 @@ export const createAndPostMonth = async (
   explicit: BudgetMonthInternalProperties
 ): Promise<BudgetMonth> => postMonth(createMonth({ explicit }));
 
-export const updateBudget = (
-  model: BudgetMonth,
-  oldBudget: number,
-  newBudget: number
-): void => {
-  model.budgeted -= oldBudget;
-  model.budgeted += newBudget;
-};
-
-export const updateActivity = (model: BudgetMonth, amount: number): void => {
-  model.balance += amount;
-  model.activity += amount;
-};
-
 export const updateMonth = async (
   model: BudgetMonth,
   {
@@ -53,13 +39,19 @@ export const updateMonth = async (
     newBudget?: number;
   }
 ): Promise<BudgetMonth> => {
-  amount && updateActivity(model, amount);
-  oldBudget && updateBudget(model, oldBudget, newBudget);
+  if (amount) {
+    model.balance += amount;
+    model.activity += amount;
+  }
+  if (oldBudget && newBudget) {
+    model.budgeted -= oldBudget;
+    model.budgeted += newBudget;
+  }
   await updateModel(model);
   return model;
 };
 
-export const getAllMonths = (
+export const getAllMonths = async (
   userRef: firestore.DocumentReference
 ): Promise<BudgetMonth[]> => {
   return userRef
@@ -69,7 +61,7 @@ export const getAllMonths = (
     .then((months) => months.docs.map((snapshot) => createMonth({ snapshot })));
 };
 
-export const getMonth = (
+export const getMonth = async (
   userRef: firestore.DocumentReference,
   {
     ref,

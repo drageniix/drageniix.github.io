@@ -27,6 +27,7 @@ export const getPayee = (
     payeeRef: req.params.payeeId,
   }).then((payee) => res.status(200).json(payee.getDisplayFormat()));
 
+// req.body.name is the only valid update
 export const putPayee = (
   req: CustomRequest,
   res: express.Response
@@ -34,5 +35,10 @@ export const putPayee = (
   BudgePayeeController.getPayee(req.userId, { payeeRef: req.params.payeeId })
     .then((payee) =>
       BudgePayeeController.updatePayee(payee, { name: req.body.name })
+    )
+    .then(
+      (payee) =>
+        (req.body.name && BudgePayeeController.updateLinkedPayeeName(payee)) ||
+        payee
     )
     .then((payee) => res.status(200).json(payee.getDisplayFormat()));

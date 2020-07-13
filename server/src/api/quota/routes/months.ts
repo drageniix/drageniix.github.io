@@ -7,8 +7,6 @@ const router = express.Router({ mergeParams: true });
 
 router.get("/", isAuth, asyncWrapper(monthControllers.getMonths));
 
-router.post("/", isAuth, asyncWrapper(monthControllers.postMonth));
-
-router.get("/:monthId", isAuth, asyncWrapper(monthControllers.getMonth));
+router.get("/:monthId", isAuth, asyncWrapper(monthControllers.getMonthById));
 
 export default router;

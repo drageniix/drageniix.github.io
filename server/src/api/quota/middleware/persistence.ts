@@ -33,6 +33,10 @@ export type DocumentSnapshot = firestore.DocumentSnapshot<
   firestore.DocumentData
 >;
 
+export type Query = firestore.Query<firestore.DocumentData>;
+
+export type QuerySnapshot = firestore.QuerySnapshot<firestore.DocumentData>;
+
 export type databaseStorageTypes = {
   [key: string]:
     | string

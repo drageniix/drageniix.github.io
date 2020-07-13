@@ -1,6 +1,7 @@
 import {
   Account,
   AccountsResponse,
+  CategoriesResponse,
   GetInstitutionByIdResponse,
   Institution,
   TokenResponse,
@@ -13,7 +14,8 @@ export const exchangePlaidPublicToken = (
 ): Promise<TokenResponse> =>
   plaid.getPlaidClient().exchangePublicToken(publicToken);
 
-export const getPlaidCategories = () => plaid.getPlaidClient().getCategories();
+export const getPlaidCategories = (): Promise<CategoriesResponse> =>
+  plaid.getPlaidClient().getCategories();
 
 export const getPlaidTransactions = (
   accessToken: string,

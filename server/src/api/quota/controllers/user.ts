@@ -1,3 +1,5 @@
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import db, {
   CollectionTypes,
   DocumentReference,
@@ -7,10 +9,7 @@ import db, {
   postModelToCollection,
   updateModel,
 } from "../middleware/persistence";
-import {
-  BudgetUserInternalProperties,
-  default as BudgetUser,
-} from "../models/User";
+import BudgetUser, { BudgetUserInternalProperties } from "../models/User";
 
 export const createUser = (parameters: {
   explicit?: BudgetUserInternalProperties;
@@ -18,22 +17,22 @@ export const createUser = (parameters: {
 }): BudgetUser => new BudgetUser(parameters);
 
 export const updateUser = async (
-  model: BudgetUser,
+  user: BudgetUser,
   { name, email, privilege }: BudgetUserInternalProperties
 ): Promise<BudgetUser> => {
-  name && (model.name = name);
-  email && (model.email = email);
-  privilege && (model.privilege = privilege);
-  await updateModel(model);
-  return model;
+  name && (user.name = name);
+  email && (user.email = email);
+  privilege && (user.privilege = privilege);
+  await updateModel(user);
+  return user;
 };
 
-export const postUser = async (model: BudgetUser): Promise<BudgetUser> => {
+export const postUser = async (user: BudgetUser): Promise<BudgetUser> => {
   await postModelToCollection(
-    model,
+    user,
     db.getDB().collection(CollectionTypes.USERS)
   );
-  return model;
+  return user;
 };
 
 export const createAndPostUser = (
@@ -41,15 +40,15 @@ export const createAndPostUser = (
 ): Promise<BudgetUser> => postUser(createUser({ explicit }));
 
 export const getUserReferenceById = (
-  ref: documentReferenceType
+  userId: documentReferenceType
 ): DocumentReference => {
-  return getDocumentReference(db.getDB(), ref, CollectionTypes.USERS);
+  return getDocumentReference(db.getDB(), userId, CollectionTypes.USERS);
 };
 
 export const getUserById = async (
-  ref: documentReferenceType
+  userId: documentReferenceType
 ): Promise<BudgetUser> => {
-  return getUserReferenceById(ref)
+  return getUserReferenceById(userId)
     .get()
     .then((user) => createUser({ snapshot: user }));
 };
@@ -65,3 +64,16 @@ export const getUserByEmail = async (email: string): Promise<BudgetUser> => {
         users.docs.length === 1 && createUser({ snapshot: users.docs[0] })
     );
 };
+
+export const initiateLogin = (user: BudgetUser): { token: string } => ({
+  token: jwt.sign(
+    {
+      privilege: user.privilege,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h", subject: user.id.id }
+  ),
+});
+
+export const hashPassword = async (password: string): Promise<string> =>
+  bcrypt.hash(password, 12);

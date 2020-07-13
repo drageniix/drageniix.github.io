@@ -1,3 +1,4 @@
+import { BudgetTransactionController } from ".";
 import {
   CollectionTypes,
   DocumentReference,
@@ -13,51 +14,51 @@ import BudgetAccount, {
 import BudgetTransactionPayee from "../models/Payee";
 import { createAndPostPayee, getPayee, updatePayee } from "./payee";
 
-const updateAccountName = async (
-  model: BudgetAccount,
-  name: string
-): Promise<void> => {
-  model.name = name;
+export const updateLinkedAccountName = async (
+  account: BudgetAccount
+): Promise<BudgetAccount> => {
+  //Update transactions connected to the account
+  await BudgetTransactionController.getAllTransactions(account.userId, {
+    account: account.id,
+  }).then((transactions) =>
+    Promise.all(
+      transactions.map((transaction) =>
+        BudgetTransactionController.updateTransaction(transaction, {
+          accountName: account.name,
+        })
+      )
+    )
+  );
 
-  // await BudgetTransaction.getAllTransactions(model.userId, {
-  //   account: model,
-  // }).then((transactions) =>
-  //   Promise.all(
-  //     transactions.map((transaction) => {
-  //       transaction.setLinkedValues({
-  //         accountName: model.name,
-  //       });
-  //       return transaction.update();
-  //     })
-  //   )
-  // );
+  // Update payee connected to the account, and all transactions with that payee
+  await getPayee(account.userId, {
+    payeeRef: account.transferPayeeId,
+  })
+    .then((payee) => {
+      payee.name = "TRANSFER " + account.name;
+      return updatePayee(payee, {
+        transferAccountName: account.name,
+      });
+    })
+    .then((payee) =>
+      BudgetTransactionController.getAllTransactions(account.userId, {
+        payee: payee.id,
+      }).then((transactions) =>
+        Promise.all(
+          transactions.map((transaction) =>
+            BudgetTransactionController.updateTransaction(transaction, {
+              payeeName: payee.name,
+            })
+          )
+        )
+      )
+    );
 
-  await getPayee(model.userId, {
-    payeeRef: model.transferPayeeId,
-  }).then((payee) => {
-    payee.name = "TRANSFER " + model.name;
-    updatePayee(payee, {
-      transferAccountName: model.name,
-    });
-  });
-  // .then((payee) =>
-  //   BudgetTransaction.getAllTransactions(model.userId, {
-  //     payee,
-  //   }).then((transactions) =>
-  //     Promise.all(
-  //       transactions.map((transaction) => {
-  //         transaction.setLinkedValues({
-  //           payeeName: model.name,
-  //         });
-  //         return transaction.update();
-  //       })
-  //     )
-  //   )
-  // );
+  return account;
 };
 
 export const updateAccount = async (
-  model: BudgetAccount,
+  account: BudgetAccount,
   {
     name,
     transferPayeeName,
@@ -68,48 +69,45 @@ export const updateAccount = async (
     transferPayeeId?: DocumentReference;
   } = {}
 ): Promise<BudgetAccount> => {
-  name && (await updateAccountName(model, name));
-  model.transferPayeeName = transferPayeeName || model.transferPayeeName;
-  model.transferPayeeId = transferPayeeId || model.transferPayeeId;
-  await updateModel(model);
-  return model;
+  account.name = name;
+  account.transferPayeeName = transferPayeeName || account.transferPayeeName;
+  account.transferPayeeId = transferPayeeId || account.transferPayeeId;
+  await updateModel(account);
+  return account;
 };
 
-export const createAccount = (parameters: {
-  explicit?: any; //eslint-disable-line
-  snapshot?: DocumentSnapshot;
-}): BudgetAccount => new BudgetAccount(parameters);
-
 export const createMatchingPayee = async (
-  model: BudgetAccount
-): Promise<BudgetTransactionPayee> => {
+  account: BudgetAccount
+): Promise<{ payee: BudgetTransactionPayee; account: BudgetAccount }> => {
   // Create equivalent payee for transfers
   const payee = await createAndPostPayee({
-    userId: model.userId,
-    name: `TRANSFER: ${model.name}`,
-    transferAccountId: model.id,
-    transferAccountName: model.name,
+    userId: account.userId,
+    name: `TRANSFER: ${account.name}`,
+    transferAccountId: account.id,
+    transferAccountName: account.name,
   });
 
-  await updateAccount(model, {
+  await updateAccount(account, {
     transferPayeeId: payee.id,
     transferPayeeName: payee.name,
   });
 
-  return payee;
+  return { account: account, payee };
 };
 
+export const createAccount = (parameters: {
+  explicit?: BudgetAccountInternalProperties;
+  snapshot?: DocumentSnapshot;
+}): BudgetAccount => new BudgetAccount(parameters);
+
 export const postAccount = async (
-  model: BudgetAccount
+  account: BudgetAccount
 ): Promise<BudgetAccount> => {
   await postModelToCollection(
-    model,
-    model.userId.collection(CollectionTypes.ACCOUNTS)
+    account,
+    account.userId.collection(CollectionTypes.ACCOUNTS)
   );
-
-  await createMatchingPayee(model);
-
-  return model;
+  return account;
 };
 
 export const createAndPostAccount = (

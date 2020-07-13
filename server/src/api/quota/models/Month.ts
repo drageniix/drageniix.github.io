@@ -26,16 +26,8 @@ export default class BudgetMonth extends DataBaseModel {
       snapshot,
     });
 
-    const {
-      activity,
-      available,
-      budgeted,
-      date,
-      balance,
-      overBudget,
-      categories,
-      userId,
-    } = explicit || snapshot.data();
+    const { activity, available, budgeted, date, balance, overBudget, userId } =
+      explicit || snapshot.data();
 
     this.date =
       (snapshot && date && date.toDate()) ||

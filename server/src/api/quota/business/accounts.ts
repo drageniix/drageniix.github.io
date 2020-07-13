@@ -1,38 +1,50 @@
 import express from "express";
 import { CustomRequest } from "../../../middleware/express";
-import * as BudgetAccount from "../controllers/account";
+import { BudgetAccountController } from "../controllers";
 
 export const getAccounts = (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
-  BudgetAccount.getAllAccounts(req.userId).then((accounts) =>
+  BudgetAccountController.getAllAccounts(req.userId).then((accounts) =>
     res.status(200).json(accounts.map((account) => account.getDisplayFormat()))
   );
 
+// needs body validation
 export const postAccount = (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
-  BudgetAccount.createAndPostAccount({
+  BudgetAccountController.createAndPostAccount({
     ...req.body,
     userId: req.userId,
-  }).then((account) => res.status(200).json(account.getDisplayFormat()));
+  })
+    .then((account) => BudgetAccountController.createMatchingPayee(account))
+    .then(({ account }) => res.status(200).json(account.getDisplayFormat()));
 
 export const getAccount = (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
-  BudgetAccount.getAccount(req.userId, {
+  BudgetAccountController.getAccount(req.userId, {
     accountRef: req.params.accountId,
   }).then((account) => res.status(200).json(account.getDisplayFormat()));
 
+// req.body.name is the only valid update
 export const putAccount = (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
-  BudgetAccount.getAccount(req.userId, { accountRef: req.params.accountId })
+  BudgetAccountController.getAccount(req.userId, {
+    accountRef: req.params.accountId,
+  })
     .then((account) =>
-      BudgetAccount.updateAccount(account, { name: req.body.name })
+      BudgetAccountController.updateAccount(account, { name: req.body.name })
+    )
+    .then(
+      (account) =>
+        (req.body.name &&
+          BudgetAccountController.updateLinkedAccountName(account)) ||
+        account
     )
     .then((account) => res.status(200).json(account.getDisplayFormat()));

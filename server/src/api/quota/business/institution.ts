@@ -29,32 +29,3 @@ export const createInstituition = async (
 
   return res.status(200).json(institution.getDisplayFormat());
 };
-
-// export const importTransactions = async (
-//   req: CustomRequest,
-//   res: express.Response
-// ): Promise<express.Response> => {
-//   const transactionImportResult = await BudgetInstitutionController.getAllInstitutions(
-//     req.userId
-//   )
-//     .then((institutions) =>
-//       Promise.all(
-//         institutions.map((institution) =>
-//           getPlaidTransactions(
-//             institution.plaidAccessToken,
-//             institution.updatedAt.toISOString().slice(0, 10)
-//           )
-//         )
-//       )
-//     )
-//     .then((transactions) =>
-//       [].concat(
-//         ...transactions.map((transactionList) => transactionList.transactions)
-//       )
-//     )
-//     .then((transactions) =>
-//       BudgetTransaction.importTransactions(req.userId, transactions)
-//     );
-
-//   return res.status(200).json({ result: transactionImportResult.length });
-// };

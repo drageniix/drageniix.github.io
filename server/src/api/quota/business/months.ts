@@ -6,20 +6,15 @@ export const getMonths = (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
-  BudgetMonthController.getAllMonths(req.userId).then((months) =>
-    res.status(200).json(months.map((month) => month.getDisplayFormat()))
-  );
+  req.query.date
+    ? BudgetMonthController.getMonth(req.userId, {
+        date: new Date(req.query.date as string),
+      }).then((month) => res.status(200).json(month.getDisplayFormat()))
+    : BudgetMonthController.getAllMonths(req.userId).then((months) =>
+        res.status(200).json(months.map((month) => month.getDisplayFormat()))
+      );
 
-export const postMonth = (
-  req: CustomRequest,
-  res: express.Response
-): Promise<express.Response> =>
-  BudgetMonthController.createAndPostMonth({
-    ...req.body,
-    userId: req.userId,
-  }).then((month) => res.status(200).json(month.getDisplayFormat()));
-
-export const getMonth = (
+export const getMonthById = (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
