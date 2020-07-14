@@ -1,7 +1,7 @@
 import express from "express";
 import { asyncWrapper } from "../../../middleware/express";
 import * as payeeControllers from "../business/payees";
-import { isAuth } from "../middleware/common";
+import { isAuth } from "../validations/common";
 
 const router = express.Router({ mergeParams: true });
 

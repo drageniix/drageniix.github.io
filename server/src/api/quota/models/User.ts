@@ -3,7 +3,7 @@ import {
   DataBaseModel,
   DocumentReference,
   filterUndefinedProperties,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 
 export enum Privilege {
   ADMIN,

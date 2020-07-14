@@ -3,7 +3,7 @@ import {
   DataBaseModel,
   DocumentReference,
   filterUndefinedProperties,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 
 export default class BudgetCategory extends DataBaseModel {
   id?: DocumentReference;
@@ -14,9 +14,7 @@ export default class BudgetCategory extends DataBaseModel {
   goalType?: string;
   active: boolean;
   name: string;
-  originalName: string;
-  subCategories: string[];
-  subSubCategories: string[];
+  plaidCategoryIds: string[];
   note?: string;
   userId?: DocumentReference;
 
@@ -40,11 +38,10 @@ export default class BudgetCategory extends DataBaseModel {
       goalPriority,
       active,
       name,
-      originalName,
       note,
       userId,
-      subCategories,
-      subSubCategories,
+
+      plaidCategoryIds,
     } = explicit || snapshot.data();
 
     this.goalCreationMonth =
@@ -58,11 +55,9 @@ export default class BudgetCategory extends DataBaseModel {
     this.goalPriority = goalPriority;
     this.active = active || true;
     this.name = name;
-    this.originalName = originalName;
     this.note = note;
     this.userId = userId;
-    this.subCategories = subCategories;
-    this.subSubCategories = subSubCategories;
+    this.plaidCategoryIds = plaidCategoryIds;
   }
 
   getDisplayFormat(): BudgetCategoryDisplayProperties {
@@ -75,10 +70,8 @@ export default class BudgetCategory extends DataBaseModel {
       goalPriority: this.goalPriority,
       active: this.active,
       name: this.name,
-      originalName: this.originalName,
       note: this.note,
-      subCategories: this.subCategories,
-      subSubCategories: this.subSubCategories,
+      plaidCategoryIds: this.plaidCategoryIds,
       userId: this.userId && this.userId.id,
     });
   }
@@ -92,10 +85,8 @@ export default class BudgetCategory extends DataBaseModel {
       goalPriority: this.goalPriority,
       active: this.active,
       name: this.name,
-      originalName: this.originalName,
       note: this.note,
-      subCategories: this.subCategories,
-      subSubCategories: this.subSubCategories,
+      plaidCategoryIds: this.plaidCategoryIds,
       userId: this.userId,
     });
   }
@@ -110,10 +101,8 @@ export type BudgetCategoryInternalProperties = {
   goalPriority?: string;
   active?: boolean;
   name?: string;
-  originalName?: string;
   note?: string;
-  subCategories?: string[];
-  subSubCategories?: string[];
+  plaidCategoryIds?: string[];
   userId?: DocumentReference;
 };
 
@@ -126,9 +115,7 @@ type BudgetCategoryDisplayProperties = {
   goalPriority?: string;
   active?: boolean;
   name?: string;
-  originalName?: string;
   note?: string;
-  subCategories?: string[];
-  subSubCategories?: string[];
+  plaidCategoryIds?: string[];
   userId?: string;
 };

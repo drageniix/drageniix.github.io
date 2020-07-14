@@ -1,5 +1,5 @@
 import io from "socket.io-client";
-const socket = io("localhost:5000");
+const socket = io("localhost:5001");
 
 socket.on("test", (data: any): void => {
   console.log(data);

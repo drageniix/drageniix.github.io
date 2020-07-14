@@ -7,7 +7,7 @@ import {
   postModelToCollection,
   Query,
   updateModel,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 import BudgetTransaction, {
   BudgetTransactionInternalProperties,
 } from "../models/Transaction";
@@ -29,6 +29,11 @@ export const postTransaction = async (
   );
   return model;
 };
+
+export const postTransactions = async (
+  transactions: BudgetTransaction[]
+): Promise<BudgetTransaction[]> =>
+  Promise.all(transactions.map((transaction) => postTransaction(transaction)));
 
 export const createAndPostTransaction = (
   explicit: BudgetTransactionInternalProperties
@@ -81,9 +86,20 @@ export const getTransaction = async (
   userRef: DocumentReference,
   ref: documentReferenceType
 ): Promise<BudgetTransaction> => {
-  return getDocumentReference(userRef, ref, CollectionTypes.TRANSACTIONS)
+  return getTransactionReferenceById(userRef, ref)
     .get()
     .then((snapshot) => createTransaction({ snapshot }));
+};
+
+export const getTransactionReferenceById = (
+  userRef: DocumentReference,
+  transaction: documentReferenceType
+): DocumentReference => {
+  return getDocumentReference(
+    userRef,
+    transaction,
+    CollectionTypes.TRANSACTIONS
+  );
 };
 
 export const updateTransaction = async (

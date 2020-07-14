@@ -1,7 +1,7 @@
 import express from "express";
 import { asyncWrapper } from "../../../middleware/express";
 import * as categoryControllers from "../business/categories";
-import { isAuth } from "../middleware/common";
+import { isAuth } from "../validations/common";
 
 const router = express.Router({ mergeParams: true });
 
@@ -19,6 +19,12 @@ router.put(
   "/:categoryId",
   isAuth,
   asyncWrapper(categoryControllers.putCategory)
+);
+
+router.post(
+  "/reset",
+  isAuth,
+  asyncWrapper(categoryControllers.setDefaultCategories)
 );
 
 export default router;

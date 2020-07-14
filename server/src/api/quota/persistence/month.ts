@@ -6,7 +6,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 import BudgetMonth, { BudgetMonthInternalProperties } from "../models/Month";
 
 export const createMonth = (parameters: {

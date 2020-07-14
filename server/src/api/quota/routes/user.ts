@@ -1,7 +1,7 @@
 import express from "express";
 import { asyncWrapper } from "../../../middleware/express";
 import * as userControllers from "../business/user";
-import { validateLogin, validateSignup } from "../middleware/user";
+import { validateLogin, validateSignup } from "../validations/user";
 
 const router = express.Router({ mergeParams: true });
 

@@ -6,7 +6,7 @@ import db, {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 import BudgetUser, { BudgetUserInternalProperties } from "../models/User";
 
 export const createUser = (parameters: {

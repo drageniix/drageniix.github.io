@@ -6,7 +6,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 import BudgetCategory, {
   BudgetCategoryInternalProperties,
 } from "../models/Category";
@@ -26,6 +26,11 @@ export const postCategory = async (
   return category;
 };
 
+export const postCategories = async (
+  categories: BudgetCategory[]
+): Promise<BudgetCategory[]> =>
+  Promise.all(categories.map((category) => postCategory(category)));
+
 export const createAndPostCategory = async (
   explicit: BudgetCategoryInternalProperties
 ): Promise<BudgetCategory> => postCategory(createCategory({ explicit }));
@@ -39,7 +44,7 @@ export const getAllCategories = async (
     .where("active", "==", true);
 
   if (description) {
-    query = query.where("originalName", "in", description);
+    query = query.where("name", "in", description);
   }
 
   return query
@@ -53,27 +58,23 @@ export const getCategory = async (
   userRef: DocumentReference,
   {
     categoryRef,
-    plaidCategoryName,
-  }: { categoryRef?: documentReferenceType; plaidCategoryName?: string[] }
+    plaidCategoryId,
+  }: { categoryRef?: documentReferenceType; plaidCategoryId?: string }
 ): Promise<BudgetCategory> => {
-  if (plaidCategoryName) {
+  if (categoryRef) {
+    return getCategoryReferenceById(userRef, categoryRef)
+      .get()
+      .then((category) => category && createCategory({ snapshot: category }));
+  } else if (plaidCategoryId) {
     return userRef
       .collection(CollectionTypes.CATEGORIES)
-      .where("originalName", "in", plaidCategoryName)
+      .where("plaidCategoryIds", "array-contains", plaidCategoryId)
       .get()
       .then(
         (categories) =>
           categories.docs.length === 1 &&
           createCategory({ snapshot: categories.docs[0] })
       );
-  } else if (categoryRef) {
-    return getDocumentReference(
-      userRef,
-      categoryRef,
-      CollectionTypes.CATEGORIES
-    )
-      .get()
-      .then((category) => category && createCategory({ snapshot: category }));
   } else return null;
 };
 

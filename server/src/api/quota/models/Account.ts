@@ -3,7 +3,7 @@ import {
   DocumentReference,
   DocumentSnapshot,
   filterUndefinedProperties,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 
 export default class BudgetAccount extends DataBaseModel {
   name: string;

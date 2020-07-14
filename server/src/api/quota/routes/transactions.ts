@@ -1,7 +1,7 @@
 import express from "express";
 import { asyncWrapper } from "../../../middleware/express";
 import * as transactionControllers from "../business/transactions";
-import { isAuth } from "../middleware/common";
+import { isAuth } from "../validations/common";
 
 const router = express.Router({ mergeParams: true });
 
@@ -19,6 +19,12 @@ router.put(
   "/:transactionId",
   isAuth,
   asyncWrapper(transactionControllers.putTransaction)
+);
+
+router.get(
+  "/import",
+  isAuth,
+  asyncWrapper(transactionControllers.importTransactions)
 );
 
 export default router;

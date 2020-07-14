@@ -5,7 +5,7 @@ import {
   DocumentSnapshot,
   getDocumentReference,
   postModelToCollection,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 import BudgetInstitution, {
   BudgetInstitutionInternalProperties,
 } from "../models/Institution";
@@ -20,7 +20,7 @@ export const postInstitution = async (
 ): Promise<BudgetInstitution> => {
   await postModelToCollection(
     institution,
-    institution.userId.collection(CollectionTypes.CATEGORIES)
+    institution.userId.collection(CollectionTypes.INSTITUTION)
   );
   return institution;
 };

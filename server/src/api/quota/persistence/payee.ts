@@ -6,7 +6,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 import BudgetTransactionPayee, {
   BudgetPayeeInternalProperties,
 } from "../models/Payee";
@@ -72,7 +72,7 @@ export const getPayee = async (
           })
       );
   } else if (payeeRef) {
-    return getDocumentReference(userRef, payeeRef, CollectionTypes.PAYEES)
+    return getPayeeReferenceById(userRef, payeeRef)
       .get()
       .then((Payee) => Payee && createPayee({ snapshot: Payee }));
   } else return null;

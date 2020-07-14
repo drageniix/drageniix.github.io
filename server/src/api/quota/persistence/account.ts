@@ -6,7 +6,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../middleware/persistence";
+} from "../gateway/persistence";
 import BudgetAccount, {
   BudgetAccountInternalProperties,
 } from "../models/Account";
@@ -76,7 +76,7 @@ export const getAccount = async (
           createAccount({ snapshot: accounts.docs[0] })
       );
   } else if (accountRef) {
-    return getDocumentReference(userRef, accountRef, CollectionTypes.ACCOUNTS)
+    return getAccountReferenceById(userRef, accountRef)
       .get()
       .then((snapshot) => snapshot && createAccount({ snapshot }));
   } else return null;

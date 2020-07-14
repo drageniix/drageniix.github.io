@@ -7,7 +7,7 @@ import {
 import {
   exchangePlaidAccessTokenForItem,
   exchangePlaidPublicToken,
-} from "../middleware/plaid";
+} from "../gateway/plaid";
 
 // requires req.body.token from plaid
 export const createInstituition = async (
