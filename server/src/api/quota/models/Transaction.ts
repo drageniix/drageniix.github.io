@@ -1,24 +1,25 @@
 import { firestore } from "firebase-admin";
 import {
   DataBaseModel,
+  DocumentReference,
   filterUndefinedProperties,
 } from "../middleware/persistence";
 
 export default class BudgetTransaction extends DataBaseModel {
-  id: firestore.DocumentReference;
+  id: DocumentReference;
   date: Date;
   amount: number;
   memo?: string;
   cleared: boolean;
   flagColor?: string;
-  accountId: string | firestore.DocumentReference;
+  accountId: string | DocumentReference;
   accountName?: string;
-  payeeId: string | firestore.DocumentReference;
+  payeeId: string | DocumentReference;
   payeeName?: string;
-  categoryId?: string | firestore.DocumentReference;
+  categoryId?: string | DocumentReference;
   categoryName?: string;
-  userId?: firestore.DocumentReference;
-  institutionId?: firestore.DocumentReference;
+  userId?: DocumentReference;
+  institutionId?: DocumentReference;
   plaidTransactionId?: string;
 
   constructor({
@@ -115,19 +116,19 @@ export default class BudgetTransaction extends DataBaseModel {
 }
 
 export type BudgetTransactionInternalProperties = {
-  id?: firestore.DocumentReference;
+  id?: DocumentReference;
   date?: Date;
   amount?: number;
   memo?: string;
   cleared?: boolean;
   flagColor?: string;
-  accountId?: firestore.DocumentReference;
+  accountId?: DocumentReference;
   accountName?: string;
-  payeeId?: firestore.DocumentReference;
+  payeeId?: DocumentReference;
   payeeName?: string;
-  categoryId?: firestore.DocumentReference;
+  categoryId?: DocumentReference;
   categoryName?: string;
-  userId?: firestore.DocumentReference;
+  userId?: DocumentReference;
 };
 
 type BudgetTransactionDisplayProperties = {

@@ -1,6 +1,7 @@
 import { firestore } from "firebase-admin";
 import {
   DataBaseModel,
+  DocumentReference,
   filterUndefinedProperties,
 } from "../middleware/persistence";
 
@@ -53,7 +54,7 @@ export default class BudgetUser extends DataBaseModel {
 }
 
 export type BudgetUserInternalProperties = {
-  id?: firestore.DocumentReference;
+  id?: DocumentReference;
   name?: string;
   email?: string;
   password?: string;

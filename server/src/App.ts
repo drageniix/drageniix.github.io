@@ -1,6 +1,6 @@
 import express = require("express");
 import { json, urlencoded } from "body-parser";
-import quota from "./api/quota/routes";
+import * as routes from "./api";
 import {
   CustomRequest,
   handle400Errors,
@@ -36,14 +36,15 @@ export default class App {
   }
 
   mountRoutes(): void {
-    this.app.get("/test", (req, res) => {
-      io.getIO().emit("test", { hello: "world" });
+    this.app.get("/test", (req: CustomRequest, res) => {
+      req.io.emit("test", { hello: "world" });
       res.status(200).json({
         message: "Hello World!",
       });
     });
 
-    this.app.use("/v1/quota", quota);
+    this.app.use("/v1/quota", routes.quota);
+
     this.app.use(handle400Errors);
     this.app.use(handleErrors);
   }

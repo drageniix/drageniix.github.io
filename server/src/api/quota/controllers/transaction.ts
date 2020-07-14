@@ -1,117 +1,23 @@
-import {
-  CollectionTypes,
-  DocumentReference,
-  documentReferenceType,
-  DocumentSnapshot,
-  getDocumentReference,
-  postModelToCollection,
-  Query,
-  updateModel,
-} from "../middleware/persistence";
-import BudgetTransaction, {
-  BudgetTransactionInternalProperties,
-} from "../models/Transaction";
+import { BudgetTransaction } from "../models";
+import { BudgetTransactionPersistence } from "../persistence";
 
-export const createTransaction = (parameters: {
-  explicit?: BudgetTransactionInternalProperties;
-  snapshot?: DocumentSnapshot;
-}): BudgetTransaction => new BudgetTransaction(parameters);
+const {
+  createAndPostTransaction,
+  createTransaction,
+  getAllTransactions,
+  getTransaction,
+  postTransaction,
+  updateTransaction,
+} = BudgetTransactionPersistence;
 
-export const postTransaction = async (
-  model: BudgetTransaction
-): Promise<BudgetTransaction> => {
-  await postModelToCollection(
-    model,
-    model.userId.collection(CollectionTypes.TRANSACTIONS)
-  );
-  return model;
-};
-
-export const createAndPostTransaction = (
-  explicit: BudgetTransactionInternalProperties
-): Promise<BudgetTransaction> =>
-  postTransaction(createTransaction({ explicit }));
-
-export const getAllTransactions = async (
-  userRef: DocumentReference,
-  {
-    account,
-    payee,
-    category,
-    limit,
-  }: {
-    account?: DocumentReference;
-    payee?: DocumentReference;
-    category?: DocumentReference;
-    limit?: number;
-  } = {}
-): Promise<BudgetTransaction[]> => {
-  let query: Query = userRef
-    .collection(CollectionTypes.TRANSACTIONS)
-    .orderBy("date", "asc");
-
-  if (account || payee || category) {
-    if (account) {
-      query = query.where("accountId", "==", account);
-    } else if (payee) {
-      query = query.where("payeeId", "==", payee);
-    } else if (category) {
-      query = query.where("categoryId", "==", category);
-    }
-  }
-
-  if (limit) {
-    query = query.limit(limit);
-  }
-
-  return query
-    .get()
-    .then((transactions) =>
-      transactions.docs.map((snapshot) => createTransaction({ snapshot }))
-    );
-};
-
-export const getTransaction = async (
-  userRef: DocumentReference,
-  ref: documentReferenceType
-): Promise<BudgetTransaction> => {
-  return getDocumentReference(userRef, ref, CollectionTypes.TRANSACTIONS)
-    .get()
-    .then((snapshot) => createTransaction({ snapshot }));
-};
-
-export const updateTransaction = async (
-  model: BudgetTransaction,
-  {
-    accountId,
-    accountName,
-    payeeId,
-    payeeName,
-    categoryId,
-    categoryName,
-    amount,
-    date,
-  }: {
-    amount?: number;
-    date?: Date;
-    accountId?: DocumentReference;
-    accountName?: string;
-    payeeId?: DocumentReference;
-    payeeName?: string;
-    categoryName?: string;
-    categoryId?: DocumentReference;
-  }
-): Promise<BudgetTransaction> => {
-  model.amount = amount || model.amount;
-  model.date = date || model.date;
-  model.accountId = accountId || model.accountId;
-  model.accountName = accountName || model.accountName;
-  model.payeeName = payeeName || model.payeeName;
-  model.payeeId = payeeId || model.payeeId;
-  model.categoryName = categoryName || model.categoryName;
-  model.categoryId = categoryId || model.categoryId;
-  updateModel(model);
-  return model;
+export {
+  BudgetTransaction,
+  createAndPostTransaction,
+  createTransaction,
+  getAllTransactions,
+  getTransaction,
+  postTransaction,
+  updateTransaction,
 };
 
 // async updateCategoryAmount(amount: number): Promise<BudgetTransaction> {

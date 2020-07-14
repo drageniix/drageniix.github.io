@@ -1,11 +1,12 @@
 import { firestore } from "firebase-admin";
 import {
   DataBaseModel,
+  DocumentReference,
   filterUndefinedProperties,
 } from "../middleware/persistence";
 
 export default class BudgetCategory extends DataBaseModel {
-  id?: firestore.DocumentReference;
+  id?: DocumentReference;
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;
@@ -17,7 +18,7 @@ export default class BudgetCategory extends DataBaseModel {
   subCategories: string[];
   subSubCategories: string[];
   note?: string;
-  userId?: firestore.DocumentReference;
+  userId?: DocumentReference;
 
   constructor({
     explicit,
@@ -101,7 +102,7 @@ export default class BudgetCategory extends DataBaseModel {
 }
 
 export type BudgetCategoryInternalProperties = {
-  id?: firestore.DocumentReference;
+  id?: DocumentReference;
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;
@@ -113,7 +114,7 @@ export type BudgetCategoryInternalProperties = {
   note?: string;
   subCategories?: string[];
   subSubCategories?: string[];
-  userId?: firestore.DocumentReference;
+  userId?: DocumentReference;
 };
 
 type BudgetCategoryDisplayProperties = {

@@ -33,7 +33,7 @@ export const handle400Errors = (
   req: CustomRequest,
   res: express.Response,
   next: express.NextFunction
-): express.NextFunction | void =>
+): void =>
   next({
     statusCode: 404,
     message: "Page not found.",
@@ -44,8 +44,8 @@ export const handleErrors = (
   error: Error,
   req?: express.Request,
   res?: express.Response,
-  next?: express.NextFunction // eslint-disable-line
-): void => {
+  next?: express.NextFunction //eslint-disable-line
+): express.Response => {
   const err = {
     code: error.statusCode || 500,
     method: req.method,
@@ -64,5 +64,5 @@ export const handleErrors = (
   logger.error(
     `STATUS ${err.code}: ${req.method} ${req.url} --- ${error.message}`
   );
-  res.status(err.code).json(err);
+  return res.status(err.code).json(err);
 };

@@ -1,18 +1,19 @@
 import { firestore } from "firebase-admin";
 import {
   DataBaseModel,
+  DocumentReference,
   filterUndefinedProperties,
 } from "../middleware/persistence";
 
 export default class BudgetMonth extends DataBaseModel {
-  id: firestore.DocumentReference;
+  id: DocumentReference;
   activity: number;
   budgeted: number;
   balance: number;
   date: Date;
   available: number; //todo
   overBudget: number; //todo
-  userId?: firestore.DocumentReference;
+  userId?: DocumentReference;
 
   constructor({
     explicit,
@@ -68,7 +69,7 @@ export default class BudgetMonth extends DataBaseModel {
 }
 
 export type BudgetMonthInternalProperties = {
-  id?: firestore.DocumentReference;
+  id?: DocumentReference;
   activity?: number;
   available?: number;
   budgeted?: number;
@@ -76,7 +77,7 @@ export type BudgetMonthInternalProperties = {
   balance?: number;
   overBudget?: number;
   categories?: firestore.CollectionReference;
-  userId?: firestore.DocumentReference;
+  userId?: DocumentReference;
 };
 
 type BudgetMonthDisplayProperties = {

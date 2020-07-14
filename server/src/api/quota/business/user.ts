@@ -6,12 +6,12 @@ export const signup = async (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> => {
-  const { email, name, password } = req.body;
-  const hashedPassword = await BudgetUserController.hashPassword(password);
+  const { email, name, password: rawPassword } = req.body;
+  const password = await BudgetUserController.hashPassword(rawPassword);
 
   const user = await BudgetUserController.createAndPostUser({
     email,
-    password: hashedPassword,
+    password,
     name,
   });
 
@@ -23,7 +23,6 @@ export const login = async (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
-  BudgetUserController.getUserByEmail(req.body.email).then((user) => {
-    const response = BudgetUserController.initiateLogin(user);
-    return res.status(200).json(response);
-  });
+  BudgetUserController.getUserByEmail(req.body.email).then((user) =>
+    res.status(200).json(BudgetUserController.initiateLogin(user))
+  );

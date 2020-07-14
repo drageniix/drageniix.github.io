@@ -6,7 +6,9 @@ export const getAccounts = (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
-  BudgetAccountController.getAllAccounts(req.userId).then((accounts) =>
+  BudgetAccountController.getAllAccounts(req.userId, {
+    institutionRef: req.params.institutionId,
+  }).then((accounts) =>
     res.status(200).json(accounts.map((account) => account.getDisplayFormat()))
   );
 
@@ -39,12 +41,12 @@ export const putAccount = (
     accountRef: req.params.accountId,
   })
     .then((account) =>
-      BudgetAccountController.updateAccount(account, { name: req.body.name })
-    )
-    .then(
-      (account) =>
-        (req.body.name &&
-          BudgetAccountController.updateLinkedAccountName(account)) ||
-        account
+      req.body.name && req.body.name !== account.name
+        ? BudgetAccountController.updateAccount(account, {
+            name: req.body.name,
+          }).then((account) =>
+            BudgetAccountController.updateLinkedAccountName(account)
+          )
+        : account
     )
     .then((account) => res.status(200).json(account.getDisplayFormat()));

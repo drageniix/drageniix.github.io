@@ -1,40 +1,39 @@
-import { BudgetTransactionController } from ".";
+import { BudgetPayee } from "../models";
 import {
-  CollectionTypes,
-  DocumentReference,
-  documentReferenceType,
-  DocumentSnapshot,
-  getDocumentReference,
-  postModelToCollection,
-  updateModel,
-} from "../middleware/persistence";
-import BudgetTransactionPayee, {
-  BudgetPayeeInternalProperties,
-} from "../models/Payee";
-import { getAccount, updateAccount } from "./account";
+  BudgetAccountPersistence,
+  BudgetPayeePersistence,
+  BudgetTransactionPersistence,
+} from "../persistence";
 
-export const createPayee = (parameters: {
-  explicit?: any; //eslint-disable-line
-  snapshot?: DocumentSnapshot;
-}): BudgetTransactionPayee => new BudgetTransactionPayee(parameters);
+const {
+  createPayee,
+  createAndPostPayee,
+  getAllPayees,
+  postPayee,
+  getPayee,
+  updatePayee,
+  getPayeeReferenceById,
+} = BudgetPayeePersistence;
 
 export const updateLinkedPayeeName = async (
-  payee: BudgetTransactionPayee
-): Promise<BudgetTransactionPayee> => {
+  payee: BudgetPayee
+): Promise<BudgetPayee> => {
   if (payee.transferAccountId) {
-    await getAccount(payee.userId, {
+    await BudgetAccountPersistence.getAccount(payee.userId, {
       accountRef: payee.transferAccountId,
     }).then((account) =>
-      updateAccount(account, { transferPayeeName: payee.name })
+      BudgetAccountPersistence.updateAccount(account, {
+        transferPayeeName: payee.name,
+      })
     );
   }
 
-  await BudgetTransactionController.getAllTransactions(payee.userId, {
-    payee: payee.id,
+  await BudgetTransactionPersistence.getAllTransactions(payee.userId, {
+    payeeRef: payee.id,
   }).then((transactions) =>
     Promise.all(
       transactions.map((transaction) =>
-        BudgetTransactionController.updateTransaction(transaction, {
+        BudgetTransactionPersistence.updateTransaction(transaction, {
           payeeName: payee.name,
         })
       )
@@ -44,73 +43,13 @@ export const updateLinkedPayeeName = async (
   return payee;
 };
 
-export const updatePayee = async (
-  payee: BudgetTransactionPayee,
-  {
-    name,
-    transferAccountName,
-    transferAccountId,
-  }: {
-    name?: string;
-    transferAccountName?: string;
-    transferAccountId?: DocumentReference;
-  } = {}
-): Promise<BudgetTransactionPayee> => {
-  payee.name = name || payee.name;
-  payee.transferAccountName = transferAccountName || payee.transferAccountName;
-  payee.transferAccountId = transferAccountId || payee.transferAccountId;
-  await updateModel(payee);
-  return payee;
-};
-
-export const postPayee = async (
-  payee: BudgetTransactionPayee
-): Promise<BudgetTransactionPayee> => {
-  await postModelToCollection(
-    payee,
-    payee.userId.collection(CollectionTypes.PAYEES)
-  );
-  return payee;
-};
-
-export const createAndPostPayee = (
-  explicit: BudgetPayeeInternalProperties
-): Promise<BudgetTransactionPayee> => postPayee(createPayee({ explicit }));
-
-export const getPayee = async (
-  userRef: DocumentReference,
-  {
-    payeeRef,
-    plaidPayeeId,
-  }: {
-    payeeRef?: documentReferenceType;
-    plaidPayeeId?: string;
-  }
-): Promise<BudgetTransactionPayee> => {
-  if (plaidPayeeId) {
-    return userRef
-      .collection(CollectionTypes.PAYEES)
-      .where("plaidPayeeId", "==", plaidPayeeId)
-      .get()
-      .then(
-        (Payees) =>
-          Payees.docs.length === 1 &&
-          createPayee({
-            snapshot: Payees.docs[0],
-          })
-      );
-  } else if (payeeRef) {
-    return getDocumentReference(userRef, payeeRef, CollectionTypes.PAYEES)
-      .get()
-      .then((Payee) => Payee && createPayee({ snapshot: Payee }));
-  } else return null;
-};
-
-export const getAllPayees = async (
-  userRef: DocumentReference
-): Promise<BudgetTransactionPayee[]> => {
-  return userRef
-    .collection(CollectionTypes.PAYEES)
-    .get()
-    .then((payees) => payees.docs.map((snapshot) => createPayee({ snapshot })));
+export {
+  BudgetPayee,
+  createPayee,
+  createAndPostPayee,
+  getAllPayees,
+  getPayee,
+  updatePayee,
+  postPayee,
+  getPayeeReferenceById,
 };

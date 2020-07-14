@@ -6,12 +6,16 @@ export const getTransactions = (
   req: CustomRequest,
   res: express.Response
 ): Promise<express.Response> =>
-  BudgetTransactionController.getAllTransactions(
-    req.userId
-  ).then((transactions) =>
-    res
-      .status(200)
-      .json(transactions.map((transaction) => transaction.getDisplayFormat()))
+  BudgetTransactionController.getAllTransactions(req.userId, {
+    accountRef: req.query.accountId as string,
+    payeeRef: req.query.payeeId as string,
+    categoryRef: req.query.categoryId as string,
+  }).then((transactions) =>
+    res.status(200).json({
+      transactions: transactions.map((transaction) =>
+        transaction.getDisplayFormat()
+      ),
+    })
   );
 
 export const postTransaction = (

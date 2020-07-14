@@ -1,17 +1,18 @@
 import { firestore } from "firebase-admin";
 import {
   DataBaseModel,
+  DocumentReference,
   filterUndefinedProperties,
 } from "../middleware/persistence";
 
 export default class BudgetInstitution extends DataBaseModel {
-  id?: firestore.DocumentReference;
+  id?: DocumentReference;
   name: string;
   note?: string;
   active: boolean;
   plaidItemId: string;
   plaidAccessToken: string;
-  userId?: firestore.DocumentReference;
+  userId?: DocumentReference;
   updatedAt?: Date;
 
   constructor({
@@ -72,13 +73,13 @@ export default class BudgetInstitution extends DataBaseModel {
 }
 
 export type BudgetInstitutionInternalProperties = {
-  id?: firestore.DocumentReference;
+  id?: DocumentReference;
   name?: string;
   note?: string;
   active?: boolean;
   plaidItemId?: string;
   plaidAccessToken?: string;
-  userId?: firestore.DocumentReference;
+  userId?: DocumentReference;
   updatedAt?: Date;
 };
 

@@ -33,24 +33,16 @@ export const getPlaidInstitution = (
 ): Promise<GetInstitutionByIdResponse<Institution>> =>
   plaid.getPlaidClient().getInstitutionById(institutionId);
 
-export default plaid;
-
-export const exchangePlaidPublicTokenForItem = async (
-  publicToken: string
+export const exchangePlaidAccessTokenForItem = async (
+  accessToken: string
 ): Promise<{
-  accessToken: string;
   itemId: string;
   institutionId: string;
   institutionName: string;
   accounts: Account[];
 }> => {
   const {
-    access_token: accessToken,
-    item_id: itemId,
-  } = await exchangePlaidPublicToken(publicToken);
-
-  const {
-    item: { institution_id: institutionId },
+    item: { institution_id: institutionId, item_id: itemId },
     accounts,
   } = await getPlaidAccounts(accessToken);
 
@@ -59,10 +51,11 @@ export const exchangePlaidPublicTokenForItem = async (
   } = await getPlaidInstitution(institutionId);
 
   return {
-    accessToken,
     itemId,
     institutionId,
     institutionName,
     accounts,
   };
 };
+
+export default plaid;

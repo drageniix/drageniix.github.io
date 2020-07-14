@@ -1,19 +1,20 @@
 import { firestore } from "firebase-admin";
 import {
   DataBaseModel,
+  DocumentReference,
   filterUndefinedProperties,
 } from "../middleware/persistence";
 
 export default class BudgetTransactionPayee extends DataBaseModel {
-  id: firestore.DocumentReference;
+  id: DocumentReference;
   name: string;
   orginalName: string;
   note?: string;
   originalName: string;
-  defaultCategoryId?: firestore.DocumentReference;
-  transferAccountId?: firestore.DocumentReference;
+  defaultCategoryId?: DocumentReference;
+  transferAccountId?: DocumentReference;
   transferAccountName?: string;
-  userId?: firestore.DocumentReference;
+  userId?: DocumentReference;
 
   constructor({
     explicit,
@@ -73,13 +74,13 @@ export default class BudgetTransactionPayee extends DataBaseModel {
 }
 
 export type BudgetPayeeInternalProperties = {
-  id?: firestore.DocumentReference;
+  id?: DocumentReference;
   name?: string;
   note?: string;
-  transferAccountId?: firestore.DocumentReference<firestore.DocumentData>;
+  transferAccountId?: DocumentReference;
   transferAccountName?: string;
-  defaultCategoryId?: firestore.DocumentReference;
-  userId?: firestore.DocumentReference;
+  defaultCategoryId?: DocumentReference;
+  userId?: DocumentReference;
   originalName?: string;
 };
 
