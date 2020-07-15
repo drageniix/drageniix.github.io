@@ -1,3 +1,3 @@
-import quota from "./quota/routes";
+import quota from "./quota";
 
 export { quota };

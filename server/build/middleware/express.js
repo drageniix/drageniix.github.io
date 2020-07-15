@@ -20,7 +20,6 @@ exports.asyncWrapper = (fn) => (req, res, next) => __awaiter(void 0, void 0, voi
         return Promise.resolve(response);
     }
     catch (err) {
-        console.log(err);
         return next(err);
     }
 });
@@ -29,7 +28,7 @@ exports.handle400Errors = (req, res, next) => next({
     message: "Page not found.",
     path: req.url,
 });
-exports.handleErrors = (error, req, res, next // eslint-disable-line
+exports.handleErrors = (error, req, res, next //eslint-disable-line
 ) => {
     const err = {
         code: error.statusCode || 500,
@@ -45,5 +44,5 @@ exports.handleErrors = (error, req, res, next // eslint-disable-line
             [],
     };
     logger_1.default.error(`STATUS ${err.code}: ${req.method} ${req.url} --- ${error.message}`);
-    res.status(err.code).json(err);
+    return res.status(err.code).json(err);
 };

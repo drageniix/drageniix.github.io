@@ -2,7 +2,7 @@ import express from "express";
 import { validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import { CustomRequest, Error } from "../../../middleware/express";
-import { BudgetUserController } from "../controllers";
+import * as BudgetUserController from "../user";
 
 export const isAuth = (
   req: CustomRequest,
@@ -22,11 +22,10 @@ export const isAuth = (
     }
   }
 
-  const error: Error = {
+  return next({
     message: "Not authenticated.",
     statusCode: 401,
-  };
-  return next(error);
+  });
 };
 
 export const inputValidation = (

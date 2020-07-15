@@ -1,0 +1,17 @@
+title This is a title
+
+actor UI
+participant user
+participant category
+participant institution
+participant account
+participant transaction
+participant payee
+participant month
+
+autonumber
+UI->user: signup
+user-->UI: JWT Token
+UI->category: set default (Plaid Hierarchy)
+UI->institution: set default (Manual)
+UI->account: set default (Cash)
