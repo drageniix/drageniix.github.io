@@ -87,7 +87,7 @@ export default class BudgetAccount extends DataBaseModel {
   }
 
   getStorageFormat(): BudgetAccountInternalProperties {
-    return filterUndefinedProperties({
+    return {
       name: this.name,
       originalName: this.originalName,
       availableBalance: this.availableBalance,
@@ -103,7 +103,7 @@ export default class BudgetAccount extends DataBaseModel {
       institutionId: this.institutionId,
       userId: this.userId,
       hidden: this.hidden,
-    });
+    };
   }
 }
 
@@ -123,6 +123,7 @@ export type BudgetAccountInternalProperties = {
   plaidAccountId?: string;
   institutionId?: DocumentReference;
   userId?: DocumentReference;
+  hidden?: boolean;
 };
 
 type BudgetAccountDisplayProperties = {

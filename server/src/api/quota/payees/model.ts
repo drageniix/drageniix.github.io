@@ -6,14 +6,12 @@ import {
 } from "../../gateway/persistence";
 
 export default class BudgetTransactionPayee extends DataBaseModel {
-  id: DocumentReference;
   name: string;
-  orginalName: string;
-  note?: string;
   originalName: string;
   defaultCategoryId?: DocumentReference;
   transferAccountId?: DocumentReference;
   transferAccountName?: string;
+  note?: string;
   userId?: DocumentReference;
 
   constructor({
@@ -60,7 +58,7 @@ export default class BudgetTransactionPayee extends DataBaseModel {
   }
 
   getStorageFormat(): BudgetPayeeInternalProperties {
-    return filterUndefinedProperties({
+    return {
       name: this.name,
       originalName: this.originalName,
       note: this.note,
@@ -68,7 +66,7 @@ export default class BudgetTransactionPayee extends DataBaseModel {
       transferAccountId: this.transferAccountId,
       transferAccountName: this.transferAccountName,
       userId: this.userId,
-    });
+    };
   }
 }
 

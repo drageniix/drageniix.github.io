@@ -13,7 +13,7 @@ router.get(
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
       BudgetAccountController.getAllAccounts(req.userId, {
-        institutionRef: req.params.institutionId,
+        institutionId: req.params.institutionId,
       }).then((accounts) =>
         res
           .status(200)
@@ -30,6 +30,27 @@ router.post(
       BudgetAccountController.createAndPostAccount({
         ...req.body,
         userId: req.userId,
+      })
+        .then((account) => BudgetAccountController.createMatchingPayee(account))
+        .then(({ account }) => res.status(200).json(account.getDisplayFormat()))
+  )
+);
+
+router.post(
+  "/default",
+  isAuth,
+  asyncWrapper(
+    (req: CustomRequest, res: express.Response): Promise<express.Response> =>
+      BudgetAccountController.createAndPostAccount({
+        userId: req.userId,
+        institutionId: BudgetInstitutionController.getInstitutionReferenceById(
+          req.userId,
+          req.body.institutionId
+        ),
+        name: "Cash",
+        originalName: "Default Account",
+        type: "depository",
+        subtype: "checking",
       })
         .then((account) => BudgetAccountController.createMatchingPayee(account))
         .then(({ account }) => res.status(200).json(account.getDisplayFormat()))
@@ -61,9 +82,20 @@ router.post(
       )
         .then((accounts) => BudgetAccountController.postAccounts(accounts))
         .then((accounts) =>
+          Promise.all(
+            accounts.map((account) =>
+              BudgetAccountController.createMatchingPayee(account)
+            )
+          )
+        )
+        .then((pairedAccountAndPayee) =>
           res
             .status(200)
-            .json(accounts.map((account) => account.getDisplayFormat()))
+            .json(
+              pairedAccountAndPayee.map(({ account }) =>
+                account.getDisplayFormat()
+              )
+            )
         );
     }
   )
@@ -75,7 +107,7 @@ router.get(
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
       BudgetAccountController.getAccount(req.userId, {
-        accountRef: req.params.accountId,
+        accountId: req.params.accountId,
       }).then((account) => res.status(200).json(account.getDisplayFormat()))
   )
 );
@@ -86,7 +118,7 @@ router.put(
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
       BudgetAccountController.getAccount(req.userId, {
-        accountRef: req.params.accountId,
+        accountId: req.params.accountId,
       })
         .then((account) =>
           req.body.name && req.body.name !== account.name

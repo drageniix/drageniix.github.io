@@ -7,7 +7,7 @@ export const updateLinkedPayeeName = async (
 ): Promise<BudgetPayee> => {
   if (payee.transferAccountId) {
     await BudgetAccountController.getAccount(payee.userId, {
-      accountRef: payee.transferAccountId,
+      accountId: payee.transferAccountId,
     }).then((account) =>
       BudgetAccountController.updateAccount(account, {
         transferPayeeName: payee.name,
@@ -16,7 +16,7 @@ export const updateLinkedPayeeName = async (
   }
 
   await BudgetTransactionController.getAllTransactions(payee.userId, {
-    payeeRef: payee.id,
+    payeeId: payee.id,
   }).then((transactions) =>
     Promise.all(
       transactions.map((transaction) =>

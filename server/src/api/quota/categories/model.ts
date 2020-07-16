@@ -1,12 +1,12 @@
 import { firestore } from "firebase-admin";
 import {
+  CollectionReference,
   DataBaseModel,
   DocumentReference,
   filterUndefinedProperties,
 } from "../../gateway/persistence";
 
 export default class BudgetCategory extends DataBaseModel {
-  id?: DocumentReference;
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;
@@ -17,6 +17,7 @@ export default class BudgetCategory extends DataBaseModel {
   plaidCategoryIds: string[];
   note?: string;
   userId?: DocumentReference;
+  months?: CollectionReference;
 
   constructor({
     explicit,
@@ -40,7 +41,7 @@ export default class BudgetCategory extends DataBaseModel {
       name,
       note,
       userId,
-
+      months,
       plaidCategoryIds,
     } = explicit || snapshot.data();
 
@@ -58,6 +59,7 @@ export default class BudgetCategory extends DataBaseModel {
     this.note = note;
     this.userId = userId;
     this.plaidCategoryIds = plaidCategoryIds;
+    this.months = months;
   }
 
   getDisplayFormat(): BudgetCategoryDisplayProperties {
@@ -76,7 +78,7 @@ export default class BudgetCategory extends DataBaseModel {
   }
 
   getStorageFormat(): BudgetCategoryInternalProperties {
-    return filterUndefinedProperties({
+    return {
       goalCreationMonth: this.goalCreationMonth,
       goalTarget: this.goalTarget,
       goalTargetMonth: this.goalTargetMonth,
@@ -87,7 +89,8 @@ export default class BudgetCategory extends DataBaseModel {
       note: this.note,
       plaidCategoryIds: this.plaidCategoryIds,
       userId: this.userId,
-    });
+      months: this.months,
+    };
   }
 }
 
@@ -97,12 +100,13 @@ export type BudgetCategoryInternalProperties = {
   goalTarget?: number;
   goalTargetMonth?: Date;
   goalType?: string;
-  goalPriority?: string;
+  goalPriority?: number;
   active?: boolean;
   name?: string;
   note?: string;
   plaidCategoryIds?: string[];
   userId?: DocumentReference;
+  months?: CollectionReference;
 };
 
 type BudgetCategoryDisplayProperties = {

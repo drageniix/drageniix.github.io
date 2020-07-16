@@ -9,8 +9,31 @@ import { isAuth } from "../validations/common";
 
 const router = express.Router({ mergeParams: true });
 
+// should only be one
 router.post(
-  "/",
+  "/default",
+  isAuth,
+  asyncWrapper(
+    async (
+      req: CustomRequest,
+      res: express.Response
+    ): Promise<express.Response> => {
+      const institution = await BudgetInstitutionController.createAndPostInstitution(
+        {
+          name: (req.query.name as string) || "Manual Entry",
+          userId: req.userId,
+        }
+      );
+
+      return res.status(200).json({
+        ...institution.getDisplayFormat(),
+      });
+    }
+  )
+);
+
+router.post(
+  "/token",
   isAuth,
   asyncWrapper(
     async (

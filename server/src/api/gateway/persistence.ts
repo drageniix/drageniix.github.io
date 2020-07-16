@@ -5,14 +5,13 @@ export * from "../../middleware/persistence";
 
 export enum CollectionTypes {
   QUOTA = "quota",
+  BUDGET = "budget",
   USERS = "users",
   INSTITUTION = "institution",
   PAYEES = "payees",
   ACCOUNTS = "accounts",
   CATEGORIES = "categories",
-  CATEGORY_GROUPS = "category_groups",
   MONTHS = "months",
-  MONTH_CATEGORIES = "categories",
   TRANSACTIONS = "transactions",
   SCHEDULED_TRANSACTIONS = "scheduled_transactions",
 }
@@ -37,6 +36,8 @@ export type Query = firestore.Query<firestore.DocumentData>;
 
 export type QuerySnapshot = firestore.QuerySnapshot<firestore.DocumentData>;
 
+export type Timestamp = firestore.Timestamp;
+
 export type databaseStorageTypes = {
   [key: string]:
     | string
@@ -45,11 +46,12 @@ export type databaseStorageTypes = {
     | number
     | Date
     | CollectionReference
-    | DocumentReference;
+    | DocumentReference
+    | Timestamp;
 };
 
 export abstract class DataBaseModel {
-  id?: DocumentReference;
+  id: DocumentReference;
 
   constructor({
     explicit,
@@ -67,6 +69,25 @@ export abstract class DataBaseModel {
 
 export type documentReferenceType = DataBaseModel | string | DocumentReference;
 
+export const filterUndefinedProperties = (
+  input: databaseStorageTypes,
+  toPersistence = false
+): databaseStorageTypes => {
+  const filteredObject: databaseStorageTypes = {};
+  Object.entries(input).forEach(([key, value]) => {
+    if (typeof value !== "undefined") {
+      if (toPersistence) {
+        filteredObject[key] =
+          value instanceof Date ? firestore.Timestamp.fromDate(value) : value;
+      } else {
+        filteredObject[key] = value;
+      }
+    }
+  });
+
+  return filteredObject;
+};
+
 export const deleteModel = async (
   model: DataBaseModel
 ): Promise<DataBaseModel> => {
@@ -77,7 +98,9 @@ export const deleteModel = async (
 export const updateModel = async (
   model: DataBaseModel
 ): Promise<DataBaseModel> => {
-  await model.id.update(model.getStorageFormat());
+  await model.id.update(
+    filterUndefinedProperties(model.getStorageFormat(), true)
+  );
   return model;
 };
 
@@ -85,7 +108,9 @@ export const postModelToCollection = async (
   model: DataBaseModel,
   collection: CollectionReference
 ): Promise<DataBaseModel> => {
-  model.id = await collection.add(model.getStorageFormat());
+  model.id = await collection.add(
+    filterUndefinedProperties(model.getStorageFormat(), true)
+  );
   return model;
 };
 
@@ -97,19 +122,6 @@ export const getDocumentReference = (
   (typeof ref === "string" && db.collection(collectionType).doc(ref)) ||
   (ref instanceof DataBaseModel && ref.id) ||
   (ref instanceof firestore.DocumentReference && ref);
-
-export const filterUndefinedProperties = (
-  input: databaseStorageTypes
-): databaseStorageTypes => {
-  const filteredObject: databaseStorageTypes = {};
-  Object.entries(input).forEach(([key, value]) => {
-    if (typeof value !== "undefined") {
-      filteredObject[key] = value;
-    }
-  });
-
-  return filteredObject;
-};
 
 export default {
   getDB: (collection: CollectionTypes): DocumentReference => {

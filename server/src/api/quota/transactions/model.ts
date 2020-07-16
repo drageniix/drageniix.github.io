@@ -6,17 +6,16 @@ import {
 } from "../../gateway/persistence";
 
 export default class BudgetTransaction extends DataBaseModel {
-  id: DocumentReference;
   date: Date;
   amount: number;
-  memo?: string;
+  note?: string;
   cleared: boolean;
   flagColor?: string;
-  accountId: string | DocumentReference;
+  accountId: DocumentReference;
   accountName?: string;
-  payeeId: string | DocumentReference;
+  payeeId: DocumentReference;
   payeeName?: string;
-  categoryId?: string | DocumentReference;
+  categoryId?: DocumentReference;
   categoryName?: string;
   userId?: DocumentReference;
   institutionId?: DocumentReference;
@@ -37,7 +36,7 @@ export default class BudgetTransaction extends DataBaseModel {
     const {
       date,
       amount,
-      memo,
+      note,
       cleared,
       flagColor,
       accountId,
@@ -56,7 +55,7 @@ export default class BudgetTransaction extends DataBaseModel {
       (date && new Date(date)) ||
       new Date();
     this.amount = amount || 0;
-    this.memo = memo;
+    this.note = note;
     this.cleared = cleared || false;
     this.flagColor = flagColor;
     this.accountId = accountId;
@@ -75,7 +74,7 @@ export default class BudgetTransaction extends DataBaseModel {
       id: this.id && this.id.id,
       date: this.date.toDateString(),
       amount: this.amount,
-      memo: this.memo,
+      note: this.note,
       cleared: this.cleared,
       flagColor: this.flagColor,
       accountId:
@@ -95,10 +94,10 @@ export default class BudgetTransaction extends DataBaseModel {
   }
 
   getStorageFormat(): BudgetTransactionInternalProperties {
-    return filterUndefinedProperties({
+    return {
       date: this.date,
       amount: this.amount,
-      memo: this.memo,
+      note: this.note,
       cleared: this.cleared,
       flagColor: this.flagColor,
       accountId: this.accountId,
@@ -110,7 +109,7 @@ export default class BudgetTransaction extends DataBaseModel {
       userId: this.userId,
       institutionId: this.institutionId,
       plaidTransactionId: this.plaidTransactionId,
-    });
+    };
   }
 }
 
@@ -118,7 +117,7 @@ export type BudgetTransactionInternalProperties = {
   id?: DocumentReference;
   date?: Date;
   amount?: number;
-  memo?: string;
+  note?: string;
   cleared?: boolean;
   flagColor?: string;
   accountId?: DocumentReference;
@@ -128,13 +127,15 @@ export type BudgetTransactionInternalProperties = {
   categoryId?: DocumentReference;
   categoryName?: string;
   userId?: DocumentReference;
+  institutionId?: DocumentReference;
+  plaidTransactionId?: string;
 };
 
 type BudgetTransactionDisplayProperties = {
   id?: string;
   date?: Date;
   amount?: number;
-  memo?: string;
+  note?: string;
   cleared?: boolean;
   flagColor?: string;
   accountId?: string;

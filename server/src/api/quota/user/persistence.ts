@@ -47,14 +47,14 @@ export const getUserReferenceById = (
   );
 
 export const getUser = async ({
-  userRef,
+  userId,
   email,
 }: {
-  userRef?: documentReferenceType;
+  userId?: documentReferenceType;
   email?: string;
 }): Promise<BudgetUser> =>
-  userRef
-    ? getUserReferenceById(userRef)
+  userId
+    ? getUserReferenceById(userId)
         .get()
         .then((user) => createUser({ snapshot: user }))
     : db

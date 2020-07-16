@@ -1,8 +1,6 @@
 import express from "express";
 import * as BudgetTransactionController from ".";
 import { asyncWrapper, CustomRequest } from "../../../middleware/express";
-import { getPlaidTransactions } from "../../gateway/plaid";
-import * as BudgetInstitutionController from "../institution";
 import { isAuth } from "../validations/common";
 
 const router = express.Router({ mergeParams: true });
@@ -13,9 +11,9 @@ router.get(
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
       BudgetTransactionController.getAllTransactions(req.userId, {
-        accountRef: req.query.accountId as string,
-        payeeRef: req.query.payeeId as string,
-        categoryRef: req.query.categoryId as string,
+        accountId: req.query.accountId as string,
+        payeeId: req.query.payeeId as string,
+        categoryId: req.query.categoryId as string,
       }).then((transactions) =>
         res.status(200).json({
           transactions: transactions.map((transaction) =>
@@ -31,12 +29,16 @@ router.post(
   isAuth,
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
-      BudgetTransactionController.createAndPostTransaction({
+      BudgetTransactionController.addManualTransaction(req.userId, {
         ...req.body,
         userId: req.userId,
-      }).then((transaction) =>
-        res.status(200).json(transaction.getDisplayFormat())
-      )
+      })
+        .then((transaction) =>
+          BudgetTransactionController.postTransaction(transaction)
+        )
+        .then((transaction) =>
+          res.status(200).json(transaction.getDisplayFormat())
+        )
   )
 );
 
@@ -83,37 +85,13 @@ router.get(
       req: CustomRequest,
       res: express.Response
     ): Promise<express.Response> =>
-      BudgetInstitutionController.getAllInstitutions(req.userId)
-        .then((institutions) =>
-          Promise.all(
-            institutions.map(async (institution) => {
-              const startDate =
-                  (req.query.start as string) ||
-                  institution.updatedAt.toISOString().slice(0, 10),
-                endDate =
-                  (req.query.end as string) ||
-                  new Date().toISOString().slice(0, 10);
-
-              const { transactions } = await getPlaidTransactions(
-                institution.plaidAccessToken,
-                startDate,
-                endDate
-              );
-
-              await BudgetInstitutionController.setUpdatedAt(
-                institution,
-                endDate
-              );
-              return transactions;
-            })
-          )
-        )
-        .then((transactionList) =>
-          BudgetTransactionController.importTransactions(
-            req.userId,
-            [].concat(...transactionList)
-          )
-        )
+      BudgetTransactionController.getPlaidTransactionsFromInstitution(
+        req.userId,
+        {
+          startDate: req.query.startDate as string,
+          endDate: req.query.endDate as string,
+        }
+      )
         .then((transactions) =>
           BudgetTransactionController.postTransactions(transactions)
         )

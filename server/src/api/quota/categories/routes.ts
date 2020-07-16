@@ -37,7 +37,7 @@ router.get(
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
       BudgetCategoryController.getCategory(req.userId, {
-        categoryRef: req.params.categoryId,
+        categoryId: req.params.categoryId,
       }).then((category) => res.status(200).json(category.getDisplayFormat()))
   )
 );
@@ -48,7 +48,7 @@ router.put(
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
       BudgetCategoryController.getCategory(req.userId, {
-        categoryRef: req.params.categoryId,
+        categoryId: req.params.categoryId,
       })
         .then((category) =>
           req.body.name && req.body.name !== category.name
@@ -64,12 +64,13 @@ router.put(
 );
 
 router.post(
-  "/reset",
+  "/default",
   isAuth,
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
-      BudgetCategoryController.deleteCategories(req.userId)
-        .then(() => plaid.getPlaidClient().getCategories())
+      plaid
+        .getPlaidClient()
+        .getCategories()
         .then(({ categories }) =>
           BudgetCategoryController.createDefaultCategories(
             req.userId,

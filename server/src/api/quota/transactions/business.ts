@@ -1,11 +1,72 @@
 import { Transaction } from "plaid";
 import { BudgetTransaction, createTransaction } from ".";
-import { DocumentReference } from "../../gateway/persistence";
+import {
+  DocumentReference,
+  documentReferenceType,
+} from "../../gateway/persistence";
 import * as BudgetAccountController from "../account";
 import * as BudgetCategoryController from "../categories";
+import * as BudgetInstitutionController from "../institution";
+import * as BudgetMonthController from "../months";
 import * as BudgetPayeeController from "../payees";
 
-export const importTransactions = async (
+export const addManualTransaction = async (
+  userRef: DocumentReference,
+  {
+    accountId,
+    payeeId,
+    categoryId,
+    amount,
+    date,
+    pending,
+  }: {
+    accountId: documentReferenceType;
+    payeeId: documentReferenceType;
+    categoryId: documentReferenceType;
+    amount: number;
+    date: string;
+    pending?: boolean;
+  }
+): Promise<BudgetTransaction> => {
+  const account = await BudgetAccountController.getAccount(userRef, {
+    accountId: accountId,
+  }).then((account) =>
+    BudgetAccountController.updateAccount(account, {
+      availableBalance: account.availableBalance + amount,
+      currentBalance: account.currentBalance + (pending ? amount : 0),
+    })
+  );
+
+  const payee = await BudgetPayeeController.getPayee(userRef, {
+    payeeId: payeeId,
+  });
+
+  const category = await BudgetCategoryController.getCategory(userRef, {
+    categoryId: categoryId,
+  });
+
+  await BudgetMonthController.getMonth(userRef, {
+    categoryId: category,
+    date: new Date(date),
+  }).then((month) => BudgetMonthController.updateMonth(month, { amount }));
+
+  return createTransaction({
+    explicit: {
+      accountId: account.id,
+      accountName: account.name,
+      amount: amount,
+      cleared: !pending,
+      date: new Date(date),
+      payeeId: payee.id,
+      payeeName: payee.name,
+      userId: userRef,
+      categoryId: category.id,
+      categoryName: category.name,
+    },
+  });
+};
+
+export const convertPlaidTransactions = async (
   userRef: DocumentReference,
   transactions: Transaction[]
 ): Promise<BudgetTransaction[]> =>
@@ -20,7 +81,7 @@ export const importTransactions = async (
       });
 
       const category = await BudgetCategoryController.getCategory(userRef, {
-        categoryRef: existingPayee && existingPayee.defaultCategoryId,
+        categoryId: existingPayee && existingPayee.defaultCategoryId,
         plaidCategoryId: transaction.category_id,
       });
 
@@ -49,6 +110,27 @@ export const importTransactions = async (
       });
     })
   );
+
+export const importTransactionsFromInstitution = (
+  userId: DocumentReference,
+  { startDate, endDate }: { startDate?: string; endDate?: string }
+): Promise<BudgetTransaction[]> =>
+  BudgetInstitutionController.getAllInstitutions(userId)
+    .then((institutions) =>
+      Promise.all(
+        institutions
+          .filter((institution) => institution.plaidAccessToken)
+          .map((institution) =>
+            BudgetInstitutionController.importPlaidTransactionsFromInstitution(
+              institution,
+              { startDate, endDate }
+            )
+          )
+      )
+    )
+    .then((transactionList) =>
+      convertPlaidTransactions(userId, [].concat(...transactionList))
+    );
 
 // async updateAccountAmount(amount: number): Promise<BudgetTransaction> {
 //   const account = await BudgetAccount.getAccount(this.userId, {

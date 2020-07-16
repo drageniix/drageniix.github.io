@@ -50,14 +50,14 @@ export const createAndPostTransaction = (
 export const getAllTransactions = async (
   userRef: DocumentReference,
   {
-    accountRef,
-    payeeRef,
-    categoryRef,
+    accountId,
+    payeeId,
+    categoryId,
     limit,
   }: {
-    accountRef?: documentReferenceType;
-    payeeRef?: documentReferenceType;
-    categoryRef?: documentReferenceType;
+    accountId?: documentReferenceType;
+    payeeId?: documentReferenceType;
+    categoryId?: documentReferenceType;
     limit?: number;
   } = {}
 ): Promise<BudgetTransaction[]> => {
@@ -65,16 +65,16 @@ export const getAllTransactions = async (
     .collection(CollectionTypes.TRANSACTIONS)
     .orderBy("date", "asc");
 
-  if (accountRef || payeeRef || categoryRef) {
-    if (accountRef) {
-      const accountId = getAccountReferenceById(userRef, accountRef);
-      query = query.where("accountId", "==", accountId);
-    } else if (payeeRef) {
-      const payeeId = getPayeeReferenceById(userRef, payeeRef);
-      query = query.where("payeeId", "==", payeeId);
-    } else if (categoryRef) {
-      const categoryId = getCategoryReferenceById(userRef, categoryRef);
-      query = query.where("categoryId", "==", categoryId);
+  if (accountId || payeeId || categoryId) {
+    if (accountId) {
+      const account = getAccountReferenceById(userRef, accountId);
+      query = query.where("accountId", "==", account);
+    } else if (payeeId) {
+      const payee = getPayeeReferenceById(userRef, payeeId);
+      query = query.where("payeeId", "==", payee);
+    } else if (categoryId) {
+      const category = getCategoryReferenceById(userRef, categoryId);
+      query = query.where("categoryId", "==", category);
     }
   }
 
@@ -89,6 +89,12 @@ export const getAllTransactions = async (
     );
 };
 
+export const getTransactionReferenceById = (
+  userRef: DocumentReference,
+  transaction: documentReferenceType
+): DocumentReference =>
+  getDocumentReference(userRef, transaction, CollectionTypes.TRANSACTIONS);
+
 export const getTransaction = async (
   userRef: DocumentReference,
   ref: documentReferenceType
@@ -96,12 +102,6 @@ export const getTransaction = async (
   getTransactionReferenceById(userRef, ref)
     .get()
     .then((snapshot) => createTransaction({ snapshot }));
-
-export const getTransactionReferenceById = (
-  userRef: DocumentReference,
-  transaction: documentReferenceType
-): DocumentReference =>
-  getDocumentReference(userRef, transaction, CollectionTypes.TRANSACTIONS);
 
 export const updateTransaction = async (
   model: BudgetTransaction,

@@ -32,7 +32,7 @@ export const updateLinkedCategoryName = async (
   category: BudgetCategory
 ): Promise<BudgetCategory> => {
   await BudgetTransactionController.getAllTransactions(category.userId, {
-    categoryRef: category,
+    categoryId: category,
   }).then((transactions) =>
     Promise.all(
       transactions.map((transaction) =>

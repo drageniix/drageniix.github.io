@@ -16,13 +16,19 @@ export const updateAccount = async (
     name,
     transferPayeeName,
     transferPayeeId,
+    availableBalance,
+    currentBalance,
   }: {
     name?: string;
+    availableBalance?: number;
+    currentBalance?: number;
     transferPayeeName?: string;
     transferPayeeId?: DocumentReference;
   } = {}
 ): Promise<BudgetAccount> => {
-  account.name = name;
+  account.name = name || account.name;
+  account.availableBalance = availableBalance || account.availableBalance;
+  account.currentBalance = currentBalance || account.currentBalance;
   account.transferPayeeName = transferPayeeName || account.transferPayeeName;
   account.transferPayeeId = transferPayeeId || account.transferPayeeId;
   await updateModel(account);
@@ -60,13 +66,19 @@ export const createAndPostAccount = (
   explicit: BudgetAccountInternalProperties
 ): Promise<BudgetAccount> => postAccount(createAccount({ explicit }));
 
+export const getAccountReferenceById = (
+  userRef: DocumentReference,
+  account: documentReferenceType
+): DocumentReference =>
+  getDocumentReference(userRef, account, CollectionTypes.ACCOUNTS);
+
 export const getAccount = async (
   userRef: DocumentReference,
   {
-    accountRef,
+    accountId,
     plaidAccountId,
   }: {
-    accountRef?: documentReferenceType;
+    accountId?: documentReferenceType;
     plaidAccountId?: string;
   }
 ): Promise<BudgetAccount> => {
@@ -80,8 +92,8 @@ export const getAccount = async (
           accounts.docs.length === 1 &&
           createAccount({ snapshot: accounts.docs[0] })
       );
-  } else if (accountRef) {
-    return getAccountReferenceById(userRef, accountRef)
+  } else if (accountId) {
+    return getAccountReferenceById(userRef, accountId)
       .get()
       .then((snapshot) => snapshot && createAccount({ snapshot }));
   } else return null;
@@ -90,18 +102,18 @@ export const getAccount = async (
 export const getAllAccounts = async (
   userRef: DocumentReference,
   {
-    institutionRef,
+    institutionId,
   }: {
-    institutionRef?: documentReferenceType;
+    institutionId?: documentReferenceType;
   } = {}
 ): Promise<BudgetAccount[]> => {
   let query = userRef
     .collection(CollectionTypes.ACCOUNTS)
     .where("hidden", "==", false);
 
-  if (institutionRef) {
-    const institutionId = getInstitutionReferenceById(userRef, institutionRef);
-    query = query.where("institutionId", "==", institutionId.id);
+  if (institutionId) {
+    const institution = getInstitutionReferenceById(userRef, institutionId);
+    query = query.where("institutionId", "==", institution.id);
   }
 
   return query
@@ -110,9 +122,3 @@ export const getAllAccounts = async (
       categories.docs.map((snapshot) => createAccount({ snapshot }))
     );
 };
-
-export const getAccountReferenceById = (
-  userRef: DocumentReference,
-  account: documentReferenceType
-): DocumentReference =>
-  getDocumentReference(userRef, account, CollectionTypes.ACCOUNTS);

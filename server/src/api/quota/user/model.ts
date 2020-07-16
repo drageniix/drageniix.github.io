@@ -44,12 +44,12 @@ export default class BudgetUser extends DataBaseModel {
   }
 
   getStorageFormat(): BudgetUserInternalProperties {
-    return filterUndefinedProperties({
+    return {
       name: this.name,
       email: this.email,
       password: this.password,
       privilege: this.privilege,
-    });
+    };
   }
 }
 

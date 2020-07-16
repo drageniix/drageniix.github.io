@@ -8,6 +8,7 @@ import {
   postModelToCollection,
   updateModel,
 } from "../../gateway/persistence";
+import * as BudgetCategoryController from "../categories";
 
 export const createMonth = (parameters: {
   explicit?: BudgetMonthInternalProperties;
@@ -17,7 +18,7 @@ export const createMonth = (parameters: {
 export const postMonth = async (month: BudgetMonth): Promise<BudgetMonth> => {
   await postModelToCollection(
     month,
-    month.userId.collection(CollectionTypes.MONTHS)
+    month.categoryId.collection(CollectionTypes.MONTHS)
   );
 
   return month;
@@ -52,34 +53,44 @@ export const updateMonth = async (
 };
 
 export const getAllMonths = async (
-  userRef: DocumentReference
+  categoryRef: DocumentReference
 ): Promise<BudgetMonth[]> =>
-  userRef
+  categoryRef
     .collection(CollectionTypes.MONTHS)
     .orderBy("date", "desc")
     .get()
     .then((months) => months.docs.map((snapshot) => createMonth({ snapshot })));
 
+export const getMonthReferenceById = (
+  categoryRef: DocumentReference,
+  monthRef: documentReferenceType
+): DocumentReference =>
+  getDocumentReference(categoryRef, monthRef, CollectionTypes.MONTHS);
+
 export const getMonth = async (
   userRef: DocumentReference,
   {
-    ref,
+    categoryId,
+    monthId,
     date,
   }: {
-    ref?: documentReferenceType;
+    categoryId: documentReferenceType;
+    monthId?: documentReferenceType;
     date?: Date;
   }
 ): Promise<BudgetMonth> => {
-  if (date) {
-    const startDate = new Date(date);
-    startDate.setDate(1);
+  const category = await BudgetCategoryController.getCategory(userRef, {
+    categoryId,
+  });
 
-    const endDate = new Date(startDate);
-    endDate.setMonth(startDate.getMonth() + 1);
+  if (date) {
+    const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+
+    const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
 
     // search
-    return userRef
-      .collection(CollectionTypes.MONTHS)
+    return category.id
+      .collection("months")
       .orderBy("date")
       .startAt(startDate)
       .endBefore(endDate)
@@ -87,10 +98,14 @@ export const getMonth = async (
       .then((months) =>
         months.docs.length === 1
           ? createMonth({ snapshot: months.docs[0] })
-          : createAndPostMonth({ date: startDate, userId: userRef })
+          : createAndPostMonth({
+              date: startDate,
+              userId: category.userId,
+              categoryId: category.id,
+            })
       );
-  } else if (ref) {
-    return getDocumentReference(userRef, ref, CollectionTypes.MONTHS)
+  } else if (monthId) {
+    return getDocumentReference(category.id, monthId)
       .get()
       .then((month) => createMonth({ snapshot: month }));
   }

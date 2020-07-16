@@ -33,6 +33,12 @@ export const createAndPostCategory = async (
   explicit: BudgetCategoryInternalProperties
 ): Promise<BudgetCategory> => postCategory(createCategory({ explicit }));
 
+export const getCategoryReferenceById = (
+  userRef: DocumentReference,
+  category: documentReferenceType
+): DocumentReference =>
+  getDocumentReference(userRef, category, CollectionTypes.CATEGORIES);
+
 export const getAllCategories = async (
   userRef: DocumentReference,
   { description }: { description?: string[] } = {}
@@ -55,12 +61,12 @@ export const getAllCategories = async (
 export const getCategory = async (
   userRef: DocumentReference,
   {
-    categoryRef,
+    categoryId,
     plaidCategoryId,
-  }: { categoryRef?: documentReferenceType; plaidCategoryId?: string }
+  }: { categoryId?: documentReferenceType; plaidCategoryId?: string }
 ): Promise<BudgetCategory> => {
-  if (categoryRef) {
-    return getCategoryReferenceById(userRef, categoryRef)
+  if (categoryId) {
+    return getCategoryReferenceById(userRef, categoryId)
       .get()
       .then((category) => category && createCategory({ snapshot: category }));
   } else if (plaidCategoryId) {
@@ -81,19 +87,13 @@ export const updateCategory = async (
   {
     name,
   }: {
-    name: string;
+    name?: string;
   }
 ): Promise<BudgetCategory> => {
   category.name = name || category.name;
   await updateModel(category);
   return category;
 };
-
-export const getCategoryReferenceById = (
-  userRef: DocumentReference,
-  category: documentReferenceType
-): DocumentReference =>
-  getDocumentReference(userRef, category, CollectionTypes.CATEGORIES);
 
 export const deleteCategories = async (
   userId: DocumentReference

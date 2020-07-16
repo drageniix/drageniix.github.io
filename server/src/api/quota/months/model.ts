@@ -1,18 +1,18 @@
-import { firestore } from "firebase-admin";
 import {
+  CollectionReference,
   DataBaseModel,
   DocumentReference,
+  DocumentSnapshot,
   filterUndefinedProperties,
 } from "../../gateway/persistence";
 
 export default class BudgetMonth extends DataBaseModel {
-  id: DocumentReference;
-  activity: number;
-  budgeted: number;
-  balance: number;
   date: Date;
-  available: number; //todo
-  overBudget: number; //todo
+  balance: number;
+  budgeted: number;
+  activity: number;
+  scheduled: number;
+  categoryId?: DocumentReference;
   userId?: DocumentReference;
 
   constructor({
@@ -20,14 +20,14 @@ export default class BudgetMonth extends DataBaseModel {
     snapshot,
   }: {
     explicit?: BudgetMonthInternalProperties;
-    snapshot?: firestore.DocumentSnapshot;
+    snapshot?: DocumentSnapshot;
   }) {
     super({
       explicit,
       snapshot,
     });
 
-    const { activity, available, budgeted, date, balance, overBudget, userId } =
+    const { categoryId, activity, budgeted, date, balance, scheduled, userId } =
       explicit || snapshot.data();
 
     this.date =
@@ -35,11 +35,11 @@ export default class BudgetMonth extends DataBaseModel {
       (date && new Date(date)) ||
       new Date();
     this.activity = activity || 0;
-    this.available = available || 0;
     this.budgeted = budgeted || 0;
     this.balance = balance || 0;
-    this.overBudget = overBudget || 0;
+    this.scheduled = scheduled || 0;
     this.userId = userId;
+    this.categoryId = categoryId;
   }
 
   getDisplayFormat(): BudgetMonthDisplayProperties {
@@ -47,46 +47,44 @@ export default class BudgetMonth extends DataBaseModel {
       id: this.id && this.id.id,
       date: this.date.toDateString(),
       activity: this.activity,
-      available: this.available,
       budgeted: this.budgeted,
       balance: this.balance,
-      overBudget: this.overBudget,
+      scheduled: this.scheduled,
     });
   }
 
   getStorageFormat(): BudgetMonthInternalProperties {
-    return filterUndefinedProperties({
+    return {
       date: this.date,
       activity: this.activity,
-      available: this.available,
       budgeted: this.budgeted,
       balance: this.balance,
-      overBudget: this.overBudget,
+      scheduled: this.scheduled,
       userId: this.userId,
-    });
+      categoryId: this.categoryId,
+    };
   }
 }
 
 export type BudgetMonthInternalProperties = {
   id?: DocumentReference;
   activity?: number;
-  available?: number;
   budgeted?: number;
   date?: Date;
   balance?: number;
-  overBudget?: number;
-  categories?: firestore.CollectionReference;
+  scheduled?: number;
+  categories?: CollectionReference;
   userId?: DocumentReference;
+  categoryId?: DocumentReference;
 };
 
 type BudgetMonthDisplayProperties = {
   id?: string;
   activity?: number;
-  available?: number;
   budgeted?: number;
   date?: Date;
   balance?: number;
-  overBudget?: number;
+  scheduled?: number;
   categories?: string;
   userId?: string;
 };

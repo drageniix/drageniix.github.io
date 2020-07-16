@@ -5,7 +5,12 @@ import BudgetTransaction, {
 import * as BudgetTransactionPersistence from "./persistence";
 import BudgetTransactionRouter from "./routes";
 
-const { importTransactions } = BudgetTransactionBusiness;
+const {
+  convertPlaidTransactions: importTransactions,
+  addManualTransaction,
+  importTransactionsFromInstitution: getPlaidTransactionsFromInstitution,
+} = BudgetTransactionBusiness;
+
 const {
   createAndPostTransaction,
   createTransaction,
@@ -21,7 +26,9 @@ export {
   BudgetTransactionRouter,
   BudgetTransaction,
   BudgetTransactionInternalProperties,
+  addManualTransaction,
   importTransactions,
+  getPlaidTransactionsFromInstitution,
   createAndPostTransaction,
   createTransaction,
   getAllTransactions,

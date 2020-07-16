@@ -5,7 +5,8 @@ import BudgetInstitution, {
 import * as BudgetInstitutionPersistence from "./persistence";
 import BudgetInstitutionRoutes from "./routes";
 
-const { setUpdatedAt } = BudgetInstitutionBuiness;
+const { importPlaidTransactionsFromInstitution } = BudgetInstitutionBuiness;
+
 const {
   createInstitution,
   createAndPostInstitution,
@@ -20,6 +21,7 @@ export {
   BudgetInstitutionRoutes,
   BudgetInstitution,
   BudgetInstitutionInternalProperties,
+  importPlaidTransactionsFromInstitution,
   createInstitution,
   createAndPostInstitution,
   getAllInstitutions,
@@ -27,5 +29,4 @@ export {
   postInstitution,
   getInstitution,
   updateInstitution,
-  setUpdatedAt,
 };

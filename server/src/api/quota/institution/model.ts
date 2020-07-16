@@ -6,7 +6,6 @@ import {
 } from "../../gateway/persistence";
 
 export default class BudgetInstitution extends DataBaseModel {
-  id?: DocumentReference;
   name: string;
   note?: string;
   active: boolean;
@@ -50,7 +49,7 @@ export default class BudgetInstitution extends DataBaseModel {
   }
 
   getStorageFormat(): BudgetInstitutionInternalProperties {
-    return filterUndefinedProperties({
+    return {
       name: this.name,
       note: this.note,
       active: this.active,
@@ -58,7 +57,7 @@ export default class BudgetInstitution extends DataBaseModel {
       plaidAccessToken: this.plaidAccessToken,
       userId: this.userId,
       updatedAt: this.updatedAt,
-    });
+    };
   }
 
   getDisplayFormat(): BudgetInstitutionDisplayProperties {

@@ -45,13 +45,19 @@ export const createAndPostPayee = (
   explicit: BudgetPayeeInternalProperties
 ): Promise<BudgetPayee> => postPayee(createPayee({ explicit }));
 
+export const getPayeeReferenceById = (
+  userRef: DocumentReference,
+  payee: documentReferenceType
+): DocumentReference =>
+  getDocumentReference(userRef, payee, CollectionTypes.PAYEES);
+
 export const getPayee = async (
   userRef: DocumentReference,
   {
-    payeeRef,
+    payeeId,
     plaidPayeeId,
   }: {
-    payeeRef?: documentReferenceType;
+    payeeId?: documentReferenceType;
     plaidPayeeId?: string;
   }
 ): Promise<BudgetPayee> => {
@@ -67,8 +73,8 @@ export const getPayee = async (
             snapshot: Payees.docs[0],
           })
       );
-  } else if (payeeRef) {
-    return getPayeeReferenceById(userRef, payeeRef)
+  } else if (payeeId) {
+    return getPayeeReferenceById(userRef, payeeId)
       .get()
       .then((Payee) => Payee && createPayee({ snapshot: Payee }));
   } else return null;
@@ -81,9 +87,3 @@ export const getAllPayees = async (
     .collection(CollectionTypes.PAYEES)
     .get()
     .then((payees) => payees.docs.map((snapshot) => createPayee({ snapshot })));
-
-export const getPayeeReferenceById = (
-  userRef: DocumentReference,
-  payee: documentReferenceType
-): DocumentReference =>
-  getDocumentReference(userRef, payee, CollectionTypes.PAYEES);

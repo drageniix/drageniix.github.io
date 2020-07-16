@@ -9,7 +9,7 @@ export const updateLinkedAccountName = async (
 ): Promise<BudgetAccount> => {
   //Update transactions connected to the account
   await BudgetTransactionController.getAllTransactions(account.userId, {
-    accountRef: account.id,
+    accountId: account.id,
   }).then((transactions) =>
     Promise.all(
       transactions.map((transaction) =>
@@ -22,7 +22,7 @@ export const updateLinkedAccountName = async (
 
   // Update payee connected to the account, and all transactions with that payee
   await BudgetPayeeController.getPayee(account.userId, {
-    payeeRef: account.transferPayeeId,
+    payeeId: account.transferPayeeId,
   })
     .then((payee) => {
       payee.name = `TRANSFER: ${account.name}`;
@@ -32,7 +32,7 @@ export const updateLinkedAccountName = async (
     })
     .then((payee) =>
       BudgetTransactionController.getAllTransactions(account.userId, {
-        payeeRef: payee.id,
+        payeeId: payee.id,
       }).then((transactions) =>
         Promise.all(
           transactions.map((transaction) =>
