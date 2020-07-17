@@ -361,6 +361,7 @@ paths:
           $ref: "#/components/parameters/accountIdQuery",
           $ref: "#/components/parameters/categoryIdQuery",
           $ref: "#/components/parameters/payeeIdQuery",
+          $ref: "#/components/parameters/flagColorQuery",
         ]
       summary: Get All Transactions
       operationId: transactionsGet
@@ -433,6 +434,29 @@ paths:
                 $ref: "#/components/schemas/Transaction"
         default:
           $ref: "#/components/responses/DefaultResponse"
+  /transaction/{transactionId}/duplicate:
+    post:
+      summary: Duplicate Transaction
+      operationId: transactionDupicate
+      tags:
+        - Transaction
+      parameters: [$ref: "#/components/parameters/transactionIdPath"]
+      requestBody:
+        description: Transaction Update Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionUpdateRequest"
+      responses:
+        200:
+          description: Updated Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
   /transaction/import:
     post:
       parameters:
@@ -451,6 +475,86 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /scheduled:
+    get:
+      parameters:
+        [
+          $ref: "#/components/parameters/accountIdQuery",
+          $ref: "#/components/parameters/categoryIdQuery",
+          $ref: "#/components/parameters/payeeIdQuery",
+          $ref: "#/components/parameters/flagColorQuery",
+        ]
+      summary: Get All Scheduleds
+      operationId: scheduledsGet
+      tags:
+        - Scheduled
+      responses:
+        200:
+          description: Scheduleds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledTransactionArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    post:
+      summary: Add New Scheduled
+      operationId: scheduledPost
+      tags:
+        - Scheduled
+      requestBody:
+        description: Scheduled Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduledTransactionPostRequest"
+      responses:
+        200:
+          description: Scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledTransaction"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /scheduled/{scheduledId}:
+    parameters: [$ref: "#/components/parameters/scheduledIdPath"]
+    get:
+      summary: Get Scheduled
+      operationId: scheduledGet
+      tags:
+        - Scheduled
+      responses:
+        200:
+          description: Updated Scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledTransaction"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    put:
+      summary: Update Scheduled
+      operationId: scheduledPut
+      tags:
+        - Scheduled
+      requestBody:
+        description: Scheduled Update Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduledTransactionUpdateRequest"
+      responses:
+        200:
+          description: Updated Scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledTransaction"
         default:
           $ref: "#/components/responses/DefaultResponse"
 components:
@@ -472,6 +576,14 @@ components:
         type: string
         minimum: 1
       description: Name
+    flagColorQuery:
+      in: query
+      name: flagColor
+      required: false
+      schema:
+        type: string
+        minimum: 1
+      description: Flag Color
     accountIdQuery:
       in: query
       name: accountId
@@ -496,6 +608,14 @@ components:
         type: string
         minimum: 1
       description: The payee ID
+    scheduledIdPath:
+      in: path
+      name: scheduledId
+      required: true
+      schema:
+        type: string
+        minimum: 1
+      description: The scheduled transaction ID
     transactionIdPath:
       in: path
       name: transactionId
@@ -683,8 +803,6 @@ components:
           type: number
         balance:
           type: number
-        scheduled:
-          type: number
         categoryId:
           type: string
     PayeePostRequest:
@@ -730,6 +848,72 @@ components:
           properties:
             name:
               type: string
+    ScheduledTransactionUpdateRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        date:
+          type: string
+          format: date
+        flagColor:
+          type: string
+        frequency:
+          type: string
+        note:
+          type: string
+    ScheduledTransactionPostRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+        payeeId:
+          type: string
+        categoryId:
+          type: string
+        amount:
+          type: number
+        date:
+          type: string
+          format: date
+        note:
+          type: string
+        flagColor:
+          type: string
+        frequency:
+          type: string
+    ScheduledTransactionArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Payee"
+    ScheduledTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: Date
+        amount:
+          type: number
+        note:
+          type: string
+        cleared:
+          type: boolean
+        flagColor:
+          type: string
+        accountId:
+          type: string
+        accountName:
+          type: string
+        payeeId:
+          type: string
+        payeeName:
+          type: string
+        categoryId:
+          type: string
+        categoryName:
+          type: string
     TransactionUpdateRequest:
       type: object
       properties:
@@ -740,6 +924,8 @@ components:
           format: date
         cleared:
           type: boolean
+        flagColor:
+          type: string
         note:
           type: string
     TransactionPostRequest:
@@ -756,6 +942,10 @@ components:
         date:
           type: string
           format: date
+        note:
+          type: string
+        flagColor:
+          type: string
         cleared:
           type: boolean
     TransactionArray:

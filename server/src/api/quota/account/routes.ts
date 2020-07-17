@@ -1,7 +1,7 @@
 import express from "express";
 import * as BudgetAccountController from ".";
-import { asyncWrapper, CustomRequest } from "../../../middleware/express";
-import { getPlaidAccounts } from "../../gateway/plaid";
+import { asyncWrapper, CustomRequest } from "../gateway/express";
+import { getPlaidAccounts } from "../gateway/plaid";
 import * as BudgetInstitutionController from "../institution";
 import { isAuth } from "../validations/common";
 

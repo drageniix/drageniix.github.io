@@ -1,10 +1,10 @@
 import express from "express";
 import * as BudgetInstitutionController from ".";
-import { asyncWrapper, CustomRequest } from "../../../middleware/express";
+import { asyncWrapper, CustomRequest } from "../gateway/express";
 import {
   exchangePlaidAccessTokenForItem,
   exchangePlaidPublicToken,
-} from "../../gateway/plaid";
+} from "../gateway/plaid";
 import { isAuth } from "../validations/common";
 
 const router = express.Router({ mergeParams: true });

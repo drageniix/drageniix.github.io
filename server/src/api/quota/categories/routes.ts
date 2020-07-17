@@ -1,7 +1,7 @@
 import express from "express";
 import * as BudgetCategoryController from ".";
-import { asyncWrapper, CustomRequest } from "../../../middleware/express";
-import plaid from "../../gateway/plaid";
+import { asyncWrapper, CustomRequest } from "../gateway/express";
+import plaid from "../gateway/plaid";
 import { BudgetMonthRouter } from "../months";
 import { isAuth } from "../validations/common";
 

@@ -3,14 +3,13 @@ import {
   DocumentReference,
   DocumentSnapshot,
   filterUndefinedProperties,
-} from "../../gateway/persistence";
+} from "../gateway/persistence";
 
 export default class BudgetMonth extends DataBaseModel {
   date: Date;
   balance: number;
   budgeted: number;
   activity: number;
-  scheduled: number;
   categoryId?: DocumentReference;
   userId?: DocumentReference;
 
@@ -26,7 +25,7 @@ export default class BudgetMonth extends DataBaseModel {
       snapshot,
     });
 
-    const { categoryId, activity, budgeted, date, balance, scheduled, userId } =
+    const { categoryId, activity, budgeted, date, balance, userId } =
       explicit || snapshot.data();
 
     this.date =
@@ -36,7 +35,6 @@ export default class BudgetMonth extends DataBaseModel {
     this.activity = activity || 0;
     this.budgeted = budgeted || 0;
     this.balance = balance || 0;
-    this.scheduled = scheduled || 0;
     this.userId = userId;
     this.categoryId = categoryId;
   }
@@ -48,7 +46,6 @@ export default class BudgetMonth extends DataBaseModel {
       activity: this.activity,
       budgeted: this.budgeted,
       balance: this.balance,
-      scheduled: this.scheduled,
       categoryId: this.categoryId && this.categoryId.id,
     });
   }
@@ -59,7 +56,6 @@ export default class BudgetMonth extends DataBaseModel {
       activity: this.activity,
       budgeted: this.budgeted,
       balance: this.balance,
-      scheduled: this.scheduled,
       userId: this.userId,
       categoryId: this.categoryId,
     };
@@ -72,7 +68,6 @@ export type BudgetMonthInternalProperties = {
   budgeted?: number;
   date?: Date;
   balance?: number;
-  scheduled?: number;
   userId?: DocumentReference;
   categoryId?: DocumentReference;
 };
@@ -83,6 +78,5 @@ type BudgetMonthDisplayProperties = {
   activity?: number;
   budgeted?: number;
   balance?: number;
-  scheduled?: number;
   categoryId?: string;
 };

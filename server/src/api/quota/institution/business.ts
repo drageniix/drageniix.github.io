@@ -1,6 +1,6 @@
 import { Transaction } from "plaid";
 import { BudgetInstitution, updateInstitution } from ".";
-import { getPlaidTransactions } from "../../gateway/plaid";
+import { getPlaidTransactions } from "../gateway/plaid";
 
 export const importPlaidTransactionsFromInstitution = async (
   institution: BudgetInstitution,

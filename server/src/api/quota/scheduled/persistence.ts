@@ -1,4 +1,4 @@
-import { BudgetTransaction, BudgetTransactionInternalProperties } from ".";
+import { BudgetScheduled, BudgetScheduledInternalProperties } from ".";
 import { getAccountReferenceById } from "../account";
 import { getCategoryReferenceById } from "../categories";
 import {
@@ -13,41 +13,33 @@ import {
 } from "../gateway/persistence";
 import { getPayeeReferenceById } from "../payees";
 
-export const createTransaction = (parameters: {
-  explicit?: BudgetTransactionInternalProperties;
+export const createScheduled = (parameters: {
+  explicit?: BudgetScheduledInternalProperties;
   snapshot?: DocumentSnapshot;
-}): BudgetTransaction => new BudgetTransaction(parameters);
+}): BudgetScheduled => new BudgetScheduled(parameters);
 
-export const postTransaction = async (
-  transaction: BudgetTransaction
-): Promise<BudgetTransaction> => {
-  const collectionRef = transaction.userId.collection(
-    CollectionTypes.TRANSACTIONS
+export const postScheduled = async (
+  scheduled: BudgetScheduled
+): Promise<BudgetScheduled> => {
+  const collectionRef = scheduled.userId.collection(
+    CollectionTypes.SCHEDULED_TRANSACTIONS
   );
-  if (transaction.plaidTransactionId) {
-    const existing = await collectionRef
-      .where("plaidTransactionId", "==", transaction.plaidTransactionId)
-      .get();
-    if (existing.docs.length === 0) {
-      await postModelToCollection(transaction, collectionRef);
-    }
-  } else {
-    await postModelToCollection(transaction, collectionRef);
-  }
-  return transaction;
+  await postModelToCollection(scheduled, collectionRef);
+  return scheduled;
 };
 
-export const postTransactions = async (
-  transactions: BudgetTransaction[]
-): Promise<BudgetTransaction[]> =>
-  Promise.all(transactions.map((transaction) => postTransaction(transaction)));
+export const postScheduleds = async (
+  scheduledTransactions: BudgetScheduled[]
+): Promise<BudgetScheduled[]> =>
+  Promise.all(
+    scheduledTransactions.map((scheduled) => postScheduled(scheduled))
+  );
 
-export const createAndPostTransaction = (
-  explicit: BudgetTransactionInternalProperties
-): Promise<BudgetTransaction> =>
-  postTransaction(createTransaction({ explicit }));
+export const createAndPostScheduled = (
+  explicit: BudgetScheduledInternalProperties
+): Promise<BudgetScheduled> => postScheduled(createScheduled({ explicit }));
 
-export const getAllTransactions = async (
+export const getAllScheduleds = async (
   userRef: DocumentReference,
   {
     accountId,
@@ -55,17 +47,23 @@ export const getAllTransactions = async (
     categoryId,
     flagColor,
     limit,
+    scheduledUntil,
   }: {
     accountId?: documentReferenceType;
     payeeId?: documentReferenceType;
     categoryId?: documentReferenceType;
     flagColor?: string;
     limit?: number;
+    scheduledUntil?: Date;
   } = {}
-): Promise<BudgetTransaction[]> => {
+): Promise<BudgetScheduled[]> => {
   let query: Query = userRef
-    .collection(CollectionTypes.TRANSACTIONS)
+    .collection(CollectionTypes.SCHEDULED_TRANSACTIONS)
     .orderBy("date", "asc");
+
+  if (scheduledUntil) {
+    query = query.endBefore(scheduledUntil);
+  }
 
   if (accountId || payeeId || categoryId) {
     if (accountId) {
@@ -90,27 +88,33 @@ export const getAllTransactions = async (
 
   return query
     .get()
-    .then((transactions) =>
-      transactions.docs.map((snapshot) => createTransaction({ snapshot }))
+    .then((scheduledTransactions) =>
+      scheduledTransactions.docs.map((snapshot) =>
+        createScheduled({ snapshot })
+      )
     );
 };
 
-export const getTransactionReferenceById = (
+export const getScheduledReferenceById = (
   userRef: DocumentReference,
-  transaction: documentReferenceType
+  scheduled: documentReferenceType
 ): DocumentReference =>
-  getDocumentReference(userRef, transaction, CollectionTypes.TRANSACTIONS);
+  getDocumentReference(
+    userRef,
+    scheduled,
+    CollectionTypes.SCHEDULED_TRANSACTIONS
+  );
 
-export const getTransaction = async (
+export const getScheduled = async (
   userRef: DocumentReference,
   ref: documentReferenceType
-): Promise<BudgetTransaction> =>
-  getTransactionReferenceById(userRef, ref)
+): Promise<BudgetScheduled> =>
+  getScheduledReferenceById(userRef, ref)
     .get()
-    .then((snapshot) => createTransaction({ snapshot }));
+    .then((snapshot) => createScheduled({ snapshot }));
 
-export const updateTransaction = async (
-  model: BudgetTransaction,
+export const updateScheduled = async (
+  model: BudgetScheduled,
   {
     accountId,
     accountName,
@@ -121,7 +125,7 @@ export const updateTransaction = async (
     amount,
     date,
     note,
-    cleared,
+    frequency,
     flagColor,
   }: {
     amount?: number;
@@ -133,10 +137,10 @@ export const updateTransaction = async (
     categoryName?: string;
     categoryId?: DocumentReference;
     note?: string;
+    frequency?: string;
     flagColor?: string;
-    cleared?: boolean;
   }
-): Promise<BudgetTransaction> => {
+): Promise<BudgetScheduled> => {
   model.amount = amount || model.amount;
   model.date = date || model.date;
   model.accountId = accountId || model.accountId;
@@ -146,7 +150,7 @@ export const updateTransaction = async (
   model.categoryName = categoryName || model.categoryName;
   model.categoryId = categoryId || model.categoryId;
   model.note = note || model.note;
-  model.cleared = cleared || model.cleared;
+  model.frequency = frequency || model.frequency;
   model.flagColor = flagColor || model.flagColor;
   updateModel(model);
   return model;

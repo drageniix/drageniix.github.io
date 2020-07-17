@@ -1,8 +1,9 @@
 import { Account } from "plaid";
 import { BudgetAccount, createAccount, updateAccount } from ".";
-import { DocumentReference } from "../../gateway/persistence";
+import { DocumentReference } from "../gateway/persistence";
 import * as BudgetInstitutionController from "../institution";
 import * as BudgetPayeeController from "../payees";
+import * as BudgetScheduledController from "../scheduled";
 import * as BudgetTransactionController from "../transactions";
 
 export const addManualAccount = async (
@@ -51,6 +52,19 @@ export const updateLinkedAccountName = async (
     Promise.all(
       transactions.map((transaction) =>
         BudgetTransactionController.updateTransaction(transaction, {
+          accountName: account.name,
+        })
+      )
+    )
+  );
+
+  //Update scheduled transactions connected to the account
+  await BudgetScheduledController.getAllScheduleds(account.userId, {
+    accountId: account.id,
+  }).then((scheduleds) =>
+    Promise.all(
+      scheduleds.map((scheduled) =>
+        BudgetScheduledController.updateScheduled(scheduled, {
           accountName: account.name,
         })
       )

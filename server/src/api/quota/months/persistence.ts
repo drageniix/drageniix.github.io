@@ -1,4 +1,5 @@
 import { BudgetMonth, BudgetMonthInternalProperties } from ".";
+import * as BudgetCategoryController from "../categories";
 import {
   CollectionTypes,
   DocumentReference,
@@ -7,8 +8,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../../gateway/persistence";
-import * as BudgetCategoryController from "../categories";
+} from "../gateway/persistence";
 
 export const createMonth = (parameters: {
   explicit?: BudgetMonthInternalProperties;
@@ -32,22 +32,19 @@ export const updateMonth = async (
   month: BudgetMonth,
   {
     amount,
-    oldBudget,
-    newBudget,
+    budget,
   }: {
     amount?: number;
-    oldBudget?: number;
-    newBudget?: number;
+    budget?: number;
   }
 ): Promise<BudgetMonth> => {
   if (amount) {
     month.balance += amount;
     month.activity += amount;
   }
-  if (oldBudget && newBudget) {
-    month.budgeted -= oldBudget;
-    month.budgeted += newBudget;
-  }
+
+  month.budgeted = budget || month.budgeted;
+
   await updateModel(month);
   return month;
 };

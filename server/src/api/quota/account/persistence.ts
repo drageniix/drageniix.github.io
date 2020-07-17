@@ -7,7 +7,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../../gateway/persistence";
+} from "../gateway/persistence";
 import { getInstitutionReferenceById } from "../institution";
 
 export const updateAccount = async (

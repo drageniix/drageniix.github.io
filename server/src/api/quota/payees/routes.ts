@@ -1,6 +1,6 @@
 import express from "express";
 import * as BudgetPayeeController from ".";
-import { asyncWrapper, CustomRequest } from "../../../middleware/express";
+import { asyncWrapper, CustomRequest } from "../gateway/express";
 import { isAuth } from "../validations/common";
 
 const router = express.Router({ mergeParams: true });

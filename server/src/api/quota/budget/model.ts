@@ -1,29 +1,26 @@
 import {
-  CollectionReference,
   DataBaseModel,
   DocumentReference,
   DocumentSnapshot,
   filterUndefinedProperties,
 } from "../gateway/persistence";
 
-export default class BudgetCategory extends DataBaseModel {
+export default class BudgetSuggested extends DataBaseModel {
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;
   goalPriority?: number;
   goalType?: string;
-  active: boolean;
   name: string;
-  plaidCategoryIds: string[];
-  note?: string;
-  userId?: DocumentReference;
-  months?: CollectionReference;
+  scheduled?: number;
+  underfunded?: number;
+  balance?: number;
 
   constructor({
     explicit,
     snapshot,
   }: {
-    explicit?: BudgetCategoryInternalProperties;
+    explicit?: BudgetSuggestedInternalProperties;
     snapshot?: DocumentSnapshot;
   }) {
     super({
@@ -37,12 +34,10 @@ export default class BudgetCategory extends DataBaseModel {
       goalTargetMonth,
       goalType,
       goalPriority,
-      active,
       name,
-      note,
-      userId,
-      months,
-      plaidCategoryIds,
+      scheduled,
+      underfunded,
+      balance,
     } = explicit || snapshot.data();
 
     this.goalCreationMonth =
@@ -54,15 +49,13 @@ export default class BudgetCategory extends DataBaseModel {
       (goalTargetMonth && new Date(goalTargetMonth));
     this.goalType = goalType;
     this.goalPriority = goalPriority;
-    this.active = active || true;
     this.name = name;
-    this.note = note;
-    this.userId = userId;
-    this.plaidCategoryIds = plaidCategoryIds;
-    this.months = months;
+    this.scheduled = scheduled;
+    this.underfunded = underfunded;
+    this.balance = balance;
   }
 
-  getDisplayFormat(): BudgetCategoryDisplayProperties {
+  getDisplayFormat(): BudgetSuggestedDisplayProperties {
     return filterUndefinedProperties({
       id: this.id && this.id.id,
       goalCreationMonth: this.goalCreationMonth,
@@ -70,52 +63,50 @@ export default class BudgetCategory extends DataBaseModel {
       goalTargetMonth: this.goalTargetMonth,
       goalType: this.goalType,
       goalPriority: this.goalPriority,
-      active: this.active,
       name: this.name,
-      note: this.note,
+      scheduled: this.scheduled,
+      underfunded: this.underfunded,
+      balance: this.balance,
     });
   }
 
-  getStorageFormat(): BudgetCategoryInternalProperties {
+  getStorageFormat(): BudgetSuggestedInternalProperties {
     return {
       goalCreationMonth: this.goalCreationMonth,
       goalTarget: this.goalTarget,
       goalTargetMonth: this.goalTargetMonth,
       goalType: this.goalType,
       goalPriority: this.goalPriority,
-      active: this.active,
       name: this.name,
-      note: this.note,
-      plaidCategoryIds: this.plaidCategoryIds,
-      userId: this.userId,
-      months: this.months,
+      scheduled: this.scheduled,
+      underfunded: this.underfunded,
+      balance: this.balance,
     };
   }
 }
 
-export type BudgetCategoryInternalProperties = {
+export type BudgetSuggestedInternalProperties = {
   id?: DocumentReference;
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;
   goalType?: string;
   goalPriority?: number;
-  active?: boolean;
   name?: string;
-  note?: string;
-  plaidCategoryIds?: string[];
-  userId?: DocumentReference;
-  months?: CollectionReference;
+  scheduled?: number;
+  underfunded?: number;
+  balance?: number;
 };
 
-type BudgetCategoryDisplayProperties = {
+type BudgetSuggestedDisplayProperties = {
   id?: string;
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;
   goalType?: string;
   goalPriority?: string;
-  active?: boolean;
   name?: string;
-  note?: string;
+  scheduled?: number;
+  underfunded?: number;
+  balance?: number;
 };

@@ -1,9 +1,9 @@
-import { firestore } from "firebase-admin";
 import {
   DataBaseModel,
   DocumentReference,
+  DocumentSnapshot,
   filterUndefinedProperties,
-} from "../../gateway/persistence";
+} from "../gateway/persistence";
 
 export enum Privilege {
   ADMIN,
@@ -21,7 +21,7 @@ export default class BudgetUser extends DataBaseModel {
     snapshot,
   }: {
     explicit?: BudgetUserInternalProperties;
-    snapshot?: firestore.DocumentSnapshot;
+    snapshot?: DocumentSnapshot;
   }) {
     super({ explicit, snapshot });
 

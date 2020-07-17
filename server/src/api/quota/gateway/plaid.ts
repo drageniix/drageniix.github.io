@@ -8,7 +8,7 @@ import {
   TokenResponse,
   TransactionsResponse,
 } from "plaid";
-import plaid from "../../middleware/plaid";
+import plaid from "../../../middleware/plaid";
 
 export const exchangePlaidPublicToken = (
   publicToken: string
@@ -62,4 +62,4 @@ export const exchangePlaidAccessTokenForItem = async (
   };
 };
 
-export default plaid;
+export * from "../../../middleware/plaid";

@@ -7,7 +7,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../../gateway/persistence";
+} from "../gateway/persistence";
 
 export const createCategory = (parameters: {
   explicit?: BudgetCategoryInternalProperties;

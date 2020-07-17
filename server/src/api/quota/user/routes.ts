@@ -1,6 +1,6 @@
 import express from "express";
 import * as BudgetUserController from ".";
-import { asyncWrapper, CustomRequest } from "../../../middleware/express";
+import { asyncWrapper, CustomRequest } from "../gateway/express";
 import { validateLogin, validateSignup } from "./validations";
 
 const router = express.Router({ mergeParams: true });

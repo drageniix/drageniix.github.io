@@ -1,7 +1,7 @@
 import express from "express";
 import { validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
-import { CustomRequest, Error } from "../../../middleware/express";
+import { CustomRequest, Error } from "../gateway/express";
 import * as BudgetUserController from "../user";
 
 export const isAuth = (

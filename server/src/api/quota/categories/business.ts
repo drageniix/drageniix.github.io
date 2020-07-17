@@ -1,6 +1,7 @@
 import { Category } from "plaid";
 import { BudgetCategory, createCategory } from ".";
-import { DocumentReference } from "../../gateway/persistence";
+import { DocumentReference } from "../gateway/persistence";
+import * as BudgetScheduledController from "../scheduled";
 import * as BudgetTransactionController from "../transactions";
 
 export const createDefaultCategories = async (
@@ -37,6 +38,18 @@ export const updateLinkedCategoryName = async (
     Promise.all(
       transactions.map((transaction) =>
         BudgetTransactionController.updateTransaction(transaction, {
+          categoryName: category.name,
+        })
+      )
+    )
+  );
+
+  await BudgetScheduledController.getAllScheduleds(category.userId, {
+    categoryId: category,
+  }).then((scheduleds) =>
+    Promise.all(
+      scheduleds.map((scheduled) =>
+        BudgetScheduledController.updateScheduled(scheduled, {
           categoryName: category.name,
         })
       )

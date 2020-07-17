@@ -5,11 +5,10 @@ import {
   filterUndefinedProperties,
 } from "../gateway/persistence";
 
-export default class BudgetTransaction extends DataBaseModel {
+export default class BudgetScheduled extends DataBaseModel {
   date: Date;
   amount: number;
   note?: string;
-  cleared: boolean;
   flagColor?: string;
   accountId: DocumentReference;
   accountName?: string;
@@ -18,13 +17,13 @@ export default class BudgetTransaction extends DataBaseModel {
   categoryId?: DocumentReference;
   categoryName?: string;
   userId?: DocumentReference;
-  plaidTransactionId?: string;
+  frequency?: string;
 
   constructor({
     explicit,
     snapshot,
   }: {
-    explicit?: BudgetTransactionInternalProperties;
+    explicit?: BudgetScheduledInternalProperties;
     snapshot?: DocumentSnapshot;
   }) {
     super({
@@ -36,7 +35,6 @@ export default class BudgetTransaction extends DataBaseModel {
       date,
       amount,
       note,
-      cleared,
       flagColor,
       accountId,
       accountName,
@@ -45,7 +43,7 @@ export default class BudgetTransaction extends DataBaseModel {
       categoryId,
       categoryName,
       userId,
-      plaidTransactionId,
+      frequency,
     } = explicit || snapshot.data();
 
     this.date =
@@ -54,7 +52,6 @@ export default class BudgetTransaction extends DataBaseModel {
       new Date();
     this.amount = amount || 0;
     this.note = note;
-    this.cleared = cleared || false;
     this.flagColor = flagColor;
     this.accountId = accountId;
     this.accountName = accountName;
@@ -63,16 +60,15 @@ export default class BudgetTransaction extends DataBaseModel {
     this.categoryId = categoryId;
     this.categoryName = categoryName;
     this.userId = userId;
-    this.plaidTransactionId = plaidTransactionId;
+    this.frequency = frequency;
   }
 
-  getDisplayFormat(): BudgetTransactionDisplayProperties {
+  getDisplayFormat(): BudgetScheduledDisplayProperties {
     return filterUndefinedProperties({
       id: this.id && this.id.id,
       date: this.date.toDateString(),
       amount: this.amount,
       note: this.note,
-      cleared: this.cleared,
       flagColor: this.flagColor,
       accountId:
         (typeof this.accountId === "object" && this.accountId.id) ||
@@ -88,12 +84,11 @@ export default class BudgetTransaction extends DataBaseModel {
     });
   }
 
-  getStorageFormat(): BudgetTransactionInternalProperties {
+  getStorageFormat(): BudgetScheduledInternalProperties {
     return {
       date: this.date,
       amount: this.amount,
       note: this.note,
-      cleared: this.cleared,
       flagColor: this.flagColor,
       accountId: this.accountId,
       accountName: this.accountName,
@@ -102,17 +97,16 @@ export default class BudgetTransaction extends DataBaseModel {
       categoryId: this.categoryId,
       categoryName: this.categoryName,
       userId: this.userId,
-      plaidTransactionId: this.plaidTransactionId,
+      frequency: this.frequency,
     };
   }
 }
 
-export type BudgetTransactionInternalProperties = {
+export type BudgetScheduledInternalProperties = {
   id?: DocumentReference;
   date?: Date;
   amount?: number;
   note?: string;
-  cleared?: boolean;
   flagColor?: string;
   accountId?: DocumentReference;
   accountName?: string;
@@ -122,15 +116,14 @@ export type BudgetTransactionInternalProperties = {
   categoryName?: string;
   userId?: DocumentReference;
   institutionId?: DocumentReference;
-  plaidTransactionId?: string;
+  frequency?: string;
 };
 
-type BudgetTransactionDisplayProperties = {
+type BudgetScheduledDisplayProperties = {
   id?: string;
   date?: Date;
   amount?: number;
   note?: string;
-  cleared?: boolean;
   flagColor?: string;
   accountId?: string;
   accountName?: string;

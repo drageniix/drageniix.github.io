@@ -1,11 +1,11 @@
 import { Transaction } from "plaid";
 import { BudgetTransaction, createTransaction } from ".";
+import * as BudgetAccountController from "../account";
+import * as BudgetCategoryController from "../categories";
 import {
   DocumentReference,
   documentReferenceType,
-} from "../../gateway/persistence";
-import * as BudgetAccountController from "../account";
-import * as BudgetCategoryController from "../categories";
+} from "../gateway/persistence";
 import * as BudgetInstitutionController from "../institution";
 import * as BudgetMonthController from "../months";
 import * as BudgetPayeeController from "../payees";
@@ -18,14 +18,18 @@ export const addManualTransaction = async (
     categoryId,
     amount,
     date,
-    pending,
+    cleared,
+    flagColor,
+    note,
   }: {
     accountId: documentReferenceType;
     payeeId: documentReferenceType;
     categoryId: documentReferenceType;
     amount: number;
     date: string;
-    pending?: boolean;
+    note: string;
+    flagColor: string;
+    cleared?: boolean;
   }
 ): Promise<BudgetTransaction> => {
   const account = await BudgetAccountController.getAccount(userRef, {
@@ -33,7 +37,7 @@ export const addManualTransaction = async (
   }).then((account) =>
     BudgetAccountController.updateAccount(account, {
       availableBalance: account.availableBalance + amount,
-      currentBalance: account.currentBalance + (pending ? amount : 0),
+      currentBalance: account.currentBalance + (cleared ? amount : 0),
     })
   );
 
@@ -55,13 +59,15 @@ export const addManualTransaction = async (
       accountId: account.id,
       accountName: account.name,
       amount: amount,
-      cleared: !pending,
+      cleared: cleared,
+      note: note,
       date: new Date(date),
       payeeId: payee.id,
       payeeName: payee.name,
       userId: userRef,
       categoryId: category.id,
       categoryName: category.name,
+      flagColor,
     },
   });
 };

@@ -7,7 +7,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../../gateway/persistence";
+} from "../gateway/persistence";
 
 export const createInstitution = (parameters: {
   explicit?: BudgetInstitutionInternalProperties;

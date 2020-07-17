@@ -1,7 +1,7 @@
 import * as BudgetUserBusiness from "./business";
 import BudgetUser, { BudgetUserInternalProperties, Privilege } from "./model";
 import * as BudgetUserPersistence from "./persistence";
-import BudgetUserRoutes from "./routes";
+import BudgetUserRouter from "./routes";
 
 const { hashPassword, initiateLogin } = BudgetUserBusiness;
 const {
@@ -14,7 +14,7 @@ const {
 } = BudgetUserPersistence;
 
 export {
-  BudgetUserRoutes,
+  BudgetUserRouter,
   BudgetUser,
   BudgetUserInternalProperties,
   Privilege,

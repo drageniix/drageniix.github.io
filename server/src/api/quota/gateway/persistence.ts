@@ -1,7 +1,7 @@
 import { firestore } from "firebase-admin";
-import db from "../../middleware/persistence";
+import db from "../../../middleware/persistence";
 
-export * from "../../middleware/persistence";
+export * from "../../../middleware/persistence";
 
 export enum CollectionTypes {
   QUOTA = "quota",

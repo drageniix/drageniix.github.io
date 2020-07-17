@@ -7,7 +7,7 @@ import db, {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../../gateway/persistence";
+} from "../gateway/persistence";
 
 export const createUser = (parameters: {
   explicit?: BudgetUserInternalProperties;

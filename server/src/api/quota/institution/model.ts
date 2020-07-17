@@ -1,9 +1,9 @@
-import { firestore } from "firebase-admin";
 import {
   DataBaseModel,
   DocumentReference,
+  DocumentSnapshot,
   filterUndefinedProperties,
-} from "../../gateway/persistence";
+} from "../gateway/persistence";
 
 export default class BudgetInstitution extends DataBaseModel {
   name: string;
@@ -19,7 +19,7 @@ export default class BudgetInstitution extends DataBaseModel {
     snapshot,
   }: {
     explicit?: BudgetInstitutionInternalProperties;
-    snapshot?: firestore.DocumentSnapshot;
+    snapshot?: DocumentSnapshot;
   }) {
     super({
       explicit,

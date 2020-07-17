@@ -3,8 +3,9 @@ import { BudgetAccountRoutes } from "./account";
 import { BudgetCategoryRoutes } from "./categories";
 import { BudgetInstitutionRoutes } from "./institution";
 import { BudgetPayeeRouter } from "./payees";
+import { BudgetScheduledRouter } from "./scheduled";
 import { BudgetTransactionRouter } from "./transactions";
-import { BudgetUserRoutes } from "./user";
+import { BudgetUserRouter } from "./user";
 
 const router = express.Router();
 
@@ -16,7 +17,9 @@ router.use("/category", BudgetCategoryRoutes);
 
 router.use("/transaction", BudgetTransactionRouter);
 
-router.use("/user", BudgetUserRoutes);
+router.use("/scheduled", BudgetScheduledRouter);
+
+router.use("/user", BudgetUserRouter);
 
 router.use("/institution", BudgetInstitutionRoutes);
 
