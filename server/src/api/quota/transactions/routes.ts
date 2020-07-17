@@ -65,10 +65,14 @@ router.put(
         req.userId,
         req.params.transactionId
       )
-        .then((transaction) =>
+        .then((
+          transaction //TODO: ESSENTIAL LOGIC TO UDATE ACOUNT AND MONTH!!!!!
+        ) =>
           BudgetTransactionController.updateTransaction(transaction, {
             amount: req.body.amount,
             date: req.body.date,
+            note: req.body.note,
+            cleared: req.body.cleared,
           })
         )
         .then((transaction) =>
@@ -77,7 +81,7 @@ router.put(
   )
 );
 
-router.get(
+router.post(
   "/import",
   isAuth,
   asyncWrapper(

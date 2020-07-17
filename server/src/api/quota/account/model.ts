@@ -19,8 +19,9 @@ export default class BudgetAccount extends DataBaseModel {
   transferPayeeName?: string;
   plaidAccountId?: string;
   institutionId?: DocumentReference;
+  institutionName?: string;
   userId?: DocumentReference;
-  hidden?: boolean;
+  active?: boolean;
 
   constructor({
     explicit,
@@ -45,8 +46,9 @@ export default class BudgetAccount extends DataBaseModel {
       transferPayeeName,
       plaidAccountId,
       institutionId,
+      institutionName,
       userId,
-      hidden,
+      active,
     } = explicit || (snapshot && snapshot.data());
 
     this.name = name;
@@ -55,7 +57,7 @@ export default class BudgetAccount extends DataBaseModel {
     this.currentBalance = currentBalance || 0;
     this.startingBalance = startingBalance || currentBalance || 0;
     this.note = note;
-    this.hidden = hidden || false;
+    this.active = active || false;
     this.onBudget = onBudget || false;
     this.type = type;
     this.subtype = subtype;
@@ -63,6 +65,7 @@ export default class BudgetAccount extends DataBaseModel {
     this.transferPayeeName = transferPayeeName;
     this.plaidAccountId = plaidAccountId;
     this.institutionId = institutionId;
+    this.institutionName = institutionName;
     this.userId = userId;
   }
 
@@ -76,13 +79,13 @@ export default class BudgetAccount extends DataBaseModel {
       startingBalance: this.startingBalance,
       note: this.note,
       onBudget: this.onBudget,
+      active: this.active,
       type: this.type,
       subtype: this.subtype,
       transferPayeeId: this.transferPayeeId && this.transferPayeeId.id,
       transferPayeeName: this.transferPayeeName,
-      plaidAccountId: this.plaidAccountId,
       institutionId: this.institutionId && this.institutionId.id,
-      hidden: this.hidden,
+      institutionName: this.institutionName,
     });
   }
 
@@ -101,8 +104,9 @@ export default class BudgetAccount extends DataBaseModel {
       transferPayeeName: this.transferPayeeName,
       plaidAccountId: this.plaidAccountId,
       institutionId: this.institutionId,
+      institutionName: this.institutionName,
       userId: this.userId,
-      hidden: this.hidden,
+      active: this.active,
     };
   }
 }
@@ -122,8 +126,9 @@ export type BudgetAccountInternalProperties = {
   transferPayeeName?: string;
   plaidAccountId?: string;
   institutionId?: DocumentReference;
+  institutionName?: string;
   userId?: DocumentReference;
-  hidden?: boolean;
+  active?: boolean;
 };
 
 type BudgetAccountDisplayProperties = {
@@ -141,5 +146,7 @@ type BudgetAccountDisplayProperties = {
   transferPayeeName?: string;
   plaidAccountId?: string;
   institutionId?: string;
+  institutionName?: string;
   userId?: string;
+  active?: boolean;
 };

@@ -2,9 +2,12 @@ import express from "express";
 import * as BudgetCategoryController from ".";
 import { asyncWrapper, CustomRequest } from "../../../middleware/express";
 import plaid from "../../gateway/plaid";
+import { BudgetMonthRouter } from "../months";
 import { isAuth } from "../validations/common";
 
 const router = express.Router({ mergeParams: true });
+
+router.use("/:categoryId/months", BudgetMonthRouter);
 
 router.get(
   "/",
@@ -54,6 +57,7 @@ router.put(
           req.body.name && req.body.name !== category.name
             ? BudgetCategoryController.updateCategory(category, {
                 name: req.body.name,
+                note: req.body.note,
               }).then((category) =>
                 BudgetCategoryController.updateLinkedCategoryName(category)
               )

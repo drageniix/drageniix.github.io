@@ -18,7 +18,6 @@ export default class BudgetTransaction extends DataBaseModel {
   categoryId?: DocumentReference;
   categoryName?: string;
   userId?: DocumentReference;
-  institutionId?: DocumentReference;
   plaidTransactionId?: string;
 
   constructor({
@@ -65,7 +64,6 @@ export default class BudgetTransaction extends DataBaseModel {
     this.categoryId = categoryId;
     this.categoryName = categoryName;
     this.userId = userId;
-    this.institutionId = institutionId;
     this.plaidTransactionId = plaidTransactionId;
   }
 
@@ -88,8 +86,6 @@ export default class BudgetTransaction extends DataBaseModel {
         (typeof this.categoryId === "object" && this.categoryId.id) ||
         this.categoryId,
       categoryName: this.categoryName,
-      institutionId: this.institutionId && this.institutionId.id,
-      plaidTransactionId: this.plaidTransactionId,
     });
   }
 
@@ -107,7 +103,6 @@ export default class BudgetTransaction extends DataBaseModel {
       categoryId: this.categoryId,
       categoryName: this.categoryName,
       userId: this.userId,
-      institutionId: this.institutionId,
       plaidTransactionId: this.plaidTransactionId,
     };
   }
@@ -144,5 +139,4 @@ type BudgetTransactionDisplayProperties = {
   payeeName?: string;
   categoryId?: string;
   categoryName?: string;
-  userId?: string;
 };

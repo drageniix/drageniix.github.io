@@ -43,7 +43,7 @@ export default class App {
       });
     });
 
-    this.app.use("/v1/quota", routes.quota);
+    this.app.use("/quota/v1", routes.quota);
 
     this.app.use(handle400Errors);
     this.app.use(handleErrors);

@@ -114,6 +114,8 @@ export const updateTransaction = async (
     categoryName,
     amount,
     date,
+    note,
+    cleared,
   }: {
     amount?: number;
     date?: Date;
@@ -123,6 +125,8 @@ export const updateTransaction = async (
     payeeName?: string;
     categoryName?: string;
     categoryId?: DocumentReference;
+    note?: string;
+    cleared?: boolean;
   }
 ): Promise<BudgetTransaction> => {
   model.amount = amount || model.amount;
@@ -133,6 +137,8 @@ export const updateTransaction = async (
   model.payeeId = payeeId || model.payeeId;
   model.categoryName = categoryName || model.categoryName;
   model.categoryId = categoryId || model.categoryId;
+  model.note = note || model.note;
+  model.cleared = cleared || model.cleared;
   updateModel(model);
   return model;
 };

@@ -1,14 +1,15 @@
-openapi: "3.0.0"
+openapi: "3.0.3"
 info:
   version: 1.0.0
   title: Quota
   license:
     name: MIT
 servers:
-  - url: https://barrow-dev.herokuapp.com/v1/quota
+  - url: https://barrow-dev.herokuapp.com/quota/v1
+  - url: http://localhost:5001/quota/v1
 
 paths:
-  /user/signup:
+  /user/:
     post:
       summary: Sign Up
       operationId: signup
@@ -23,17 +24,9 @@ paths:
               $ref: "#/components/schemas/SignUpRequest"
       responses:
         200:
-          description: An paged array of pets
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserLoginResponse"
+          $ref: "#/components/responses/UserTokenResponse"
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/DefaultResponse"
   /user/login:
     post:
       summary: Login
@@ -49,20 +42,684 @@ paths:
               $ref: "#/components/schemas/UserLoginRequest"
       responses:
         200:
-          description: An paged array of pets
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserLoginResponse"
+          $ref: "#/components/responses/UserTokenResponse"
         default:
-          description: unexpected error
+          $ref: "#/components/responses/DefaultResponse"
+  /category:
+    get:
+      summary: Get All Categories
+      operationId: categoriesGet
+      tags:
+        - Category
+      responses:
+        200:
+          description: Categories
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-
+                $ref: "#/components/schemas/CategoryArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /category/{categoryId}:
+    parameters: [$ref: "#/components/parameters/categoryIdPath"]
+    get:
+      summary: Get Category
+      operationId: categoryGet
+      tags:
+        - Category
+      responses:
+        200:
+          description: Category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    put:
+      summary: Update Category
+      operationId: categoryPut
+      tags:
+        - Category
+      requestBody:
+        description: Category Update Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryUpdateRequest"
+      responses:
+        200:
+          description: Updated Category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /category/{categoryId}/month:
+    parameters:
+      [
+        $ref: "#/components/parameters/categoryIdPath",
+        $ref: "#/components/parameters/dateQuery",
+      ]
+    get:
+      summary: Get Month
+      operationId: monthGet
+      tags:
+        - Category
+      responses:
+        200:
+          description: Month
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Month"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /category/default:
+    post:
+      summary: Generate Default Categories
+      operationId: categoriesDefault
+      tags:
+        - Category
+      responses:
+        200:
+          description: Default Categories
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /institution/default:
+    post:
+      parameters: [$ref: "#/components/parameters/nameQuery"]
+      summary: Generate Default Institution
+      operationId: institutionDefault
+      tags:
+        - Institution
+      responses:
+        200:
+          description: Manual Entry Institution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Institution"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /institution/import:
+    post:
+      summary: Import Institution
+      operationId: institutionImport
+      tags:
+        - Institution
+      requestBody:
+        description: Account Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstitutionPostRequest"
+      responses:
+        200:
+          description: Imported Institution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Institution"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /account:
+    get:
+      summary: Get All Accounts
+      operationId: accountsGet
+      tags:
+        - Account
+      responses:
+        200:
+          description: Accounts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    post:
+      summary: Add New Account
+      operationId: accountPost
+      tags:
+        - Account
+      requestBody:
+        description: Account Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountPostRequest"
+      responses:
+        200:
+          description: Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /account/{accountId}:
+    parameters: [$ref: "#/components/parameters/accountIdPath"]
+    get:
+      summary: Get Account
+      operationId: accountGet
+      tags:
+        - Account
+      responses:
+        200:
+          description: Updated Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    put:
+      summary: Update Account
+      operationId: accountPut
+      tags:
+        - Account
+      requestBody:
+        description: Account Update Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUpdateRequest"
+      responses:
+        200:
+          description: Updated Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /account/default:
+    post:
+      parameters: [$ref: "#/components/parameters/nameQuery"]
+      summary: Generate Default Account
+      operationId: accountDefault
+      tags:
+        - Account
+      responses:
+        200:
+          description: Cash Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /account/import:
+    post:
+      summary: Import external accounts
+      operationId: accountImport
+      tags:
+        - Account
+      requestBody:
+        description: Import eligibile accounts
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountImportRequest"
+      responses:
+        200:
+          description: Cash Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /payee:
+    get:
+      summary: Get All Payees
+      operationId: payeesGet
+      tags:
+        - Payee
+      responses:
+        200:
+          description: Payees
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayeeArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    post:
+      summary: Add New Payee
+      operationId: payeePost
+      tags:
+        - Payee
+      requestBody:
+        description: Payee Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayeePostRequest"
+      responses:
+        200:
+          description: Payee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payee"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /payee/{payeeId}:
+    parameters: [$ref: "#/components/parameters/payeeIdPath"]
+    get:
+      summary: Get Payee
+      operationId: payeeGet
+      tags:
+        - Payee
+      responses:
+        200:
+          description: Updated Payee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payee"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    put:
+      summary: Update Payee
+      operationId: payeePut
+      tags:
+        - Payee
+      requestBody:
+        description: Payee Update Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayeeUpdateRequest"
+      responses:
+        200:
+          description: Updated Payee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payee"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /transaction:
+    get:
+      parameters:
+        [
+          $ref: "#/components/parameters/accountIdQuery",
+          $ref: "#/components/parameters/categoryIdQuery",
+          $ref: "#/components/parameters/payeeIdQuery",
+        ]
+      summary: Get All Transactions
+      operationId: transactionsGet
+      tags:
+        - Transaction
+      responses:
+        200:
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    post:
+      summary: Add New Transaction
+      operationId: transactionPost
+      tags:
+        - Transaction
+      requestBody:
+        description: Transaction Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionPostRequest"
+      responses:
+        200:
+          description: Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /transaction/{transactionId}:
+    parameters: [$ref: "#/components/parameters/transactionIdPath"]
+    get:
+      summary: Get Transaction
+      operationId: transactionGet
+      tags:
+        - Transaction
+      responses:
+        200:
+          description: Updated Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    put:
+      summary: Update Transaction
+      operationId: transactionPut
+      tags:
+        - Transaction
+      requestBody:
+        description: Transaction Update Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionUpdateRequest"
+      responses:
+        200:
+          description: Updated Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /transaction/import:
+    post:
+      parameters:
+        [
+          $ref: "#/components/parameters/startDateQuery",
+          $ref: "#/components/parameters/endDateQuery",
+        ]
+      summary: Import external transactions
+      operationId: transactionImport
+      tags:
+        - Transaction
+      responses:
+        200:
+          description: Cash Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
 components:
+  parameters:
+    dateQuery:
+      in: query
+      name: date
+      required: false
+      schema:
+        type: string
+        format: date
+        minimum: 1
+      description: Date
+    nameQuery:
+      in: query
+      name: name
+      required: false
+      schema:
+        type: string
+        minimum: 1
+      description: Name
+    accountIdQuery:
+      in: query
+      name: accountId
+      required: false
+      schema:
+        type: string
+        minimum: 1
+      description: The account ID
+    categoryIdQuery:
+      in: query
+      name: categoryId
+      required: false
+      schema:
+        type: string
+        minimum: 1
+      description: The category ID
+    payeeIdQuery:
+      in: query
+      name: payeeId
+      required: false
+      schema:
+        type: string
+        minimum: 1
+      description: The payee ID
+    transactionIdPath:
+      in: path
+      name: transactionId
+      required: true
+      schema:
+        type: string
+        minimum: 1
+      description: The transaction ID
+    accountIdPath:
+      in: path
+      name: accountId
+      required: true
+      schema:
+        type: string
+        minimum: 1
+      description: The account ID
+    categoryIdPath:
+      in: path
+      name: categoryId
+      required: true
+      schema:
+        type: string
+        minimum: 1
+      description: The category ID
+    payeeIdPath:
+      in: path
+      name: payeeId
+      required: true
+      schema:
+        type: string
+        minimum: 1
+      description: The payee ID
+    startDateQuery:
+      name: startDate
+      in: query
+      description: start date to filter
+      required: false
+      schema:
+        type: string
+        format: date
+    endDateQuery:
+      name: endDate
+      in: query
+      description: start date to filter
+      required: false
+      schema:
+        type: string
+        format: date
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
+    AccountUpdateRequest:
+      type: object
+      properties:
+        note:
+          type: string
+        name:
+          type: string
+    AccountImportRequest:
+      type: object
+      properties:
+        institutionId:
+          type: string
+        accounts:
+          type: array
+          items:
+            type: string
+    AccountPostRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        subtype:
+          type: string
+        institutionId:
+          type: string
+        onBudget:
+          type: boolean
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        originalName:
+          type: string
+        availableBalance:
+          type: number
+        currentBalance:
+          type: number
+        startingBalance:
+          type: number
+        note:
+          type: string
+        onBudget:
+          type: boolean
+        active:
+          type: boolean
+        type:
+          type: string
+        subtype:
+          type: string
+        transferPayeeId:
+          type: string
+        transferPayeeName:
+          type: string
+        institutionId:
+          type: string
+        institutionName:
+          type: string
+    AccountArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Account"
+    CategoryUpdateRequest:
+      type: object
+      properties:
+        note:
+          type: string
+        name:
+          type: string
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        goalCreationMonth:
+          type: string
+          format: date
+        goalTarget:
+          type: number
+        goalTargetMonth:
+          type: string
+          format: date
+        goalType:
+          type: string
+        goalPriority:
+          type: number
+        active:
+          type: boolean
+        name:
+          type: string
+        note:
+          type: string
+    CategoryArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Category"
+    InstitutionPostRequest:
+      type: object
+      properties:
+        token:
+          type: string
+    Institution:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        note:
+          type: string
+        active:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date
+    Month:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: Date
+        activity:
+          type: number
+        budgeted:
+          type: number
+        balance:
+          type: number
+        scheduled:
+          type: number
+        categoryId:
+          type: string
+    PayeePostRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    PayeeUpdateRequest:
+      type: object
+      properties:
+        note:
+          type: string
+        name:
+          type: string
+    Payee:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        originalName:
+          type: string
+        transferAccountId:
+          type: string
+        transferAccountName:
+          type: string
+        defaultCategoryId:
+          type: string
+        note:
+          type: string
+    PayeeArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Payee"
     SignUpRequest:
       required:
         - email
@@ -73,7 +730,66 @@ components:
           properties:
             name:
               type: string
-
+    TransactionUpdateRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        date:
+          type: string
+          format: date
+        cleared:
+          type: boolean
+        note:
+          type: string
+    TransactionPostRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+        payeeId:
+          type: string
+        categoryId:
+          type: string
+        amount:
+          type: number
+        date:
+          type: string
+          format: date
+        cleared:
+          type: boolean
+    TransactionArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Payee"
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: Date
+        amount:
+          type: number
+        note:
+          type: string
+        cleared:
+          type: boolean
+        flagColor:
+          type: string
+        accountId:
+          type: string
+        accountName:
+          type: string
+        payeeId:
+          type: string
+        payeeName:
+          type: string
+        categoryId:
+          type: string
+        categoryName:
+          type: string
     UserLoginRequest:
       type: object
       required:
@@ -88,28 +804,11 @@ components:
           type: string
           format: password
           description: 5 characters
-
     UserLoginResponse:
       type: object
       properties:
         token:
           type: string
-        userId:
-          type: string
-        user:
-          $ref: "#/components/schemas/User"
-
-    User:
-      type: object
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-          format: email
-        priviliege:
-          type: integer
-
     Error:
       type: object
       required:
@@ -135,3 +834,24 @@ components:
                 type: string
         path:
           type: string
+  responses:
+    UserTokenResponse:
+      description: JWT Token For user
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UserLoginResponse"
+    UnauthorizedResponse:
+      description: Invalid Token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    DefaultResponse:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+security:
+  - bearerAuth: []

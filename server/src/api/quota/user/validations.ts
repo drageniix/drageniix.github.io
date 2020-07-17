@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { body } from "express-validator";
 import * as BudgetUserController from ".";
+import * as commonMiddleware from "../validations/common";
 
 export const validateSignup = [
   body("email")
@@ -22,7 +23,7 @@ export const validateSignup = [
       throw new Error("Passwords don't match.");
     } else return true;
   }),
-  // commonMiddleware.inputValidation,
+  commonMiddleware.inputValidation,
 ];
 
 export const validateLogin = [
@@ -47,5 +48,5 @@ export const validateLogin = [
         throw new Error("Incorrect email or password.");
       }
     }),
-  // commonMiddleware.inputValidation,
+  commonMiddleware.inputValidation,
 ];

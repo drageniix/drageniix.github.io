@@ -1,8 +1,45 @@
 import { Account } from "plaid";
 import { BudgetAccount, createAccount, updateAccount } from ".";
+import { DocumentReference } from "../../gateway/persistence";
 import * as BudgetInstitutionController from "../institution";
 import * as BudgetPayeeController from "../payees";
 import * as BudgetTransactionController from "../transactions";
+
+export const addManualAccount = async (
+  userRef: DocumentReference,
+  {
+    name,
+    type,
+    subtype,
+    institutionId,
+    note,
+    onBudget,
+  }: {
+    name: string;
+    type: string;
+    subtype: string;
+    institutionId: string;
+    note: string;
+    onBudget: boolean;
+  }
+): Promise<BudgetAccount> => {
+  const institution = BudgetInstitutionController.getInstitutionReferenceById(
+    userRef,
+    institutionId
+  );
+
+  return createAccount({
+    explicit: {
+      userId: userRef,
+      institutionId: institution,
+      name,
+      type,
+      subtype,
+      note,
+      onBudget,
+    },
+  });
+};
 
 export const updateLinkedAccountName = async (
   account: BudgetAccount
@@ -47,7 +84,7 @@ export const updateLinkedAccountName = async (
   return account;
 };
 
-export const createMatchingPayee = async (
+export const createAndPostMatchingPayee = async (
   account: BudgetAccount
 ): Promise<{
   payee: BudgetPayeeController.BudgetPayee;

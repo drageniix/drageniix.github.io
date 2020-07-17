@@ -51,6 +51,7 @@ router.put(
           req.body.name && req.body.name !== payee.name
             ? BudgetPayeeController.updatePayee(payee, {
                 name: req.body.name,
+                note: req.body.note,
               }).then((payee) =>
                 BudgetPayeeController.updateLinkedPayeeName(payee)
               )

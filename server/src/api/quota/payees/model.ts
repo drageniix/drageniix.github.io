@@ -84,10 +84,9 @@ export type BudgetPayeeInternalProperties = {
 type BudgetPayeeDisplayProperties = {
   id?: string;
   name?: string;
-  note?: string;
+  originalName?: string;
   transferAccountId?: string;
   transferAccountName?: string;
   defaultCategoryId?: string;
-  userId?: string;
-  originalName?: string;
+  note?: string;
 };

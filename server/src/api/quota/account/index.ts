@@ -15,8 +15,9 @@ const {
 } = BudgetAccountPersistence;
 
 const {
+  addManualAccount,
   createAccountsFromInstitution,
-  createMatchingPayee,
+  createAndPostMatchingPayee: createMatchingPayee,
   updateLinkedAccountName,
 } = BudgetAccountBusiness;
 
@@ -25,6 +26,7 @@ export {
   BudgetAccount,
   BudgetAccountInternalProperties,
   createAccountsFromInstitution,
+  addManualAccount,
   createMatchingPayee,
   updateLinkedAccountName,
   createAccount,

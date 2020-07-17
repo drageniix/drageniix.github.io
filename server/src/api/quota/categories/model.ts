@@ -73,7 +73,6 @@ export default class BudgetCategory extends DataBaseModel {
       active: this.active,
       name: this.name,
       note: this.note,
-      plaidCategoryIds: this.plaidCategoryIds,
     });
   }
 
@@ -119,6 +118,4 @@ type BudgetCategoryDisplayProperties = {
   active?: boolean;
   name?: string;
   note?: string;
-  plaidCategoryIds?: string[];
-  userId?: string;
 };

@@ -85,7 +85,6 @@ export const getMonth = async (
 
   if (date) {
     const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
-
     const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
 
     // search

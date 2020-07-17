@@ -18,8 +18,10 @@ export const updateAccount = async (
     transferPayeeId,
     availableBalance,
     currentBalance,
+    note,
   }: {
     name?: string;
+    note?: string;
     availableBalance?: number;
     currentBalance?: number;
     transferPayeeName?: string;
@@ -27,6 +29,7 @@ export const updateAccount = async (
   } = {}
 ): Promise<BudgetAccount> => {
   account.name = name || account.name;
+  account.note = note || account.note;
   account.availableBalance = availableBalance || account.availableBalance;
   account.currentBalance = currentBalance || account.currentBalance;
   account.transferPayeeName = transferPayeeName || account.transferPayeeName;

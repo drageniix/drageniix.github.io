@@ -33,7 +33,7 @@ router.post(
 );
 
 router.post(
-  "/token",
+  "/import",
   isAuth,
   asyncWrapper(
     async (

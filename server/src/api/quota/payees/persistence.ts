@@ -18,15 +18,18 @@ export const updatePayee = async (
   payee: BudgetPayee,
   {
     name,
+    note,
     transferAccountName,
     transferAccountId,
   }: {
     name?: string;
+    note?: string;
     transferAccountName?: string;
     transferAccountId?: DocumentReference;
   } = {}
 ): Promise<BudgetPayee> => {
   payee.name = name || payee.name;
+  payee.note = note || payee.note;
   payee.transferAccountName = transferAccountName || payee.transferAccountName;
   payee.transferAccountId = transferAccountId || payee.transferAccountId;
   await updateModel(payee);

@@ -86,11 +86,14 @@ export const updateCategory = async (
   category: BudgetCategory,
   {
     name,
+    note,
   }: {
     name?: string;
+    note?: string;
   }
 ): Promise<BudgetCategory> => {
   category.name = name || category.name;
+  category.note = note || category.note;
   await updateModel(category);
   return category;
 };

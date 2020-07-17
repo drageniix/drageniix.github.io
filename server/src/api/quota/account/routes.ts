@@ -27,10 +27,8 @@ router.post(
   isAuth,
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
-      BudgetAccountController.createAndPostAccount({
-        ...req.body,
-        userId: req.userId,
-      })
+      BudgetAccountController.addManualAccount(req.userId, req.body)
+        .then((account) => BudgetAccountController.postAccount(account))
         .then((account) => BudgetAccountController.createMatchingPayee(account))
         .then(({ account }) => res.status(200).json(account.getDisplayFormat()))
   )
@@ -47,7 +45,7 @@ router.post(
           req.userId,
           req.body.institutionId
         ),
-        name: "Cash",
+        name: (req.query.name as string) || "Cash",
         originalName: "Default Account",
         type: "depository",
         subtype: "checking",
@@ -58,7 +56,7 @@ router.post(
 );
 
 router.post(
-  "/populate",
+  "/import",
   isAuth,
   asyncWrapper(
     async (
@@ -124,6 +122,7 @@ router.put(
           req.body.name && req.body.name !== account.name
             ? BudgetAccountController.updateAccount(account, {
                 name: req.body.name,
+                note: req.body.note,
               }).then((account) =>
                 BudgetAccountController.updateLinkedAccountName(account)
               )

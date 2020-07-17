@@ -1,5 +1,4 @@
 import {
-  CollectionReference,
   DataBaseModel,
   DocumentReference,
   DocumentSnapshot,
@@ -50,6 +49,7 @@ export default class BudgetMonth extends DataBaseModel {
       budgeted: this.budgeted,
       balance: this.balance,
       scheduled: this.scheduled,
+      categoryId: this.categoryId && this.categoryId.id,
     });
   }
 
@@ -73,18 +73,16 @@ export type BudgetMonthInternalProperties = {
   date?: Date;
   balance?: number;
   scheduled?: number;
-  categories?: CollectionReference;
   userId?: DocumentReference;
   categoryId?: DocumentReference;
 };
 
 type BudgetMonthDisplayProperties = {
   id?: string;
+  date?: Date;
   activity?: number;
   budgeted?: number;
-  date?: Date;
   balance?: number;
   scheduled?: number;
-  categories?: string;
-  userId?: string;
+  categoryId?: string;
 };
