@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const persistence_1 = require("../gateway/persistence");
-class BudgetCategory extends persistence_1.DataBaseModel {
+class BudgetSuggested extends persistence_1.DataBaseModel {
     constructor({ explicit, snapshot, }) {
         super({
             explicit,
             snapshot,
         });
-        const { goalCreationMonth, goalTarget, goalTargetMonth, goalType, goalPriority, active, name, note, userId, months, plaidCategoryIds, } = explicit || snapshot.data();
+        const { goalCreationMonth, goalTarget, goalTargetMonth, goalType, goalPriority, name, scheduled, underfunded, balance, } = explicit || snapshot.data();
         this.goalCreationMonth =
             (snapshot && goalTargetMonth && goalCreationMonth.toDate()) ||
                 (goalCreationMonth && new Date(goalTargetMonth));
@@ -17,12 +17,10 @@ class BudgetCategory extends persistence_1.DataBaseModel {
                 (goalTargetMonth && new Date(goalTargetMonth));
         this.goalType = goalType;
         this.goalPriority = goalPriority;
-        this.active = active || true;
         this.name = name;
-        this.note = note;
-        this.userId = userId;
-        this.plaidCategoryIds = plaidCategoryIds;
-        this.months = months;
+        this.scheduled = scheduled;
+        this.underfunded = underfunded;
+        this.balance = balance;
     }
     getDisplayFormat() {
         return persistence_1.filterUndefinedProperties({
@@ -32,9 +30,10 @@ class BudgetCategory extends persistence_1.DataBaseModel {
             goalTargetMonth: this.goalTargetMonth,
             goalType: this.goalType,
             goalPriority: this.goalPriority,
-            active: this.active,
             name: this.name,
-            note: this.note,
+            scheduled: this.scheduled,
+            underfunded: this.underfunded,
+            balance: this.balance,
         });
     }
     getStorageFormat() {
@@ -44,13 +43,11 @@ class BudgetCategory extends persistence_1.DataBaseModel {
             goalTargetMonth: this.goalTargetMonth,
             goalType: this.goalType,
             goalPriority: this.goalPriority,
-            active: this.active,
             name: this.name,
-            note: this.note,
-            plaidCategoryIds: this.plaidCategoryIds,
-            userId: this.userId,
-            months: this.months,
+            scheduled: this.scheduled,
+            underfunded: this.underfunded,
+            balance: this.balance,
         };
     }
 }
-exports.default = BudgetCategory;
+exports.default = BudgetSuggested;

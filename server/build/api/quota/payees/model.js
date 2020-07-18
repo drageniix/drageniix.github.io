@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const persistence_1 = require("../../gateway/persistence");
+const persistence_1 = require("../gateway/persistence");
 class BudgetTransactionPayee extends persistence_1.DataBaseModel {
     constructor({ explicit, snapshot, }) {
         super({
@@ -28,7 +28,7 @@ class BudgetTransactionPayee extends persistence_1.DataBaseModel {
         });
     }
     getStorageFormat() {
-        return persistence_1.filterUndefinedProperties({
+        return {
             name: this.name,
             originalName: this.originalName,
             note: this.note,
@@ -36,7 +36,7 @@ class BudgetTransactionPayee extends persistence_1.DataBaseModel {
             transferAccountId: this.transferAccountId,
             transferAccountName: this.transferAccountName,
             userId: this.userId,
-        });
+        };
     }
 }
 exports.default = BudgetTransactionPayee;

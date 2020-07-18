@@ -28,20 +28,42 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAccountsFromInstitution = exports.createMatchingPayee = exports.updateLinkedAccountName = void 0;
+exports.createAccountsFromInstitution = exports.createAndPostMatchingPayee = exports.updateLinkedAccountName = exports.addManualAccount = void 0;
 const _1 = require(".");
+const BudgetInstitutionController = __importStar(require("../institution"));
 const BudgetPayeeController = __importStar(require("../payees"));
+const BudgetScheduledController = __importStar(require("../scheduled"));
 const BudgetTransactionController = __importStar(require("../transactions"));
+exports.addManualAccount = (userRef, { name, type, subtype, institutionId, note, onBudget, }) => __awaiter(void 0, void 0, void 0, function* () {
+    const institution = BudgetInstitutionController.getInstitutionReferenceById(userRef, institutionId);
+    return _1.createAccount({
+        explicit: {
+            userId: userRef,
+            institutionId: institution,
+            name,
+            type,
+            subtype,
+            note,
+            onBudget,
+        },
+    });
+});
 exports.updateLinkedAccountName = (account) => __awaiter(void 0, void 0, void 0, function* () {
     //Update transactions connected to the account
     yield BudgetTransactionController.getAllTransactions(account.userId, {
-        accountRef: account.id,
+        accountId: account.id,
     }).then((transactions) => Promise.all(transactions.map((transaction) => BudgetTransactionController.updateTransaction(transaction, {
+        accountName: account.name,
+    }))));
+    //Update scheduled transactions connected to the account
+    yield BudgetScheduledController.getAllScheduleds(account.userId, {
+        accountId: account.id,
+    }).then((scheduleds) => Promise.all(scheduleds.map((scheduled) => BudgetScheduledController.updateScheduled(scheduled, {
         accountName: account.name,
     }))));
     // Update payee connected to the account, and all transactions with that payee
     yield BudgetPayeeController.getPayee(account.userId, {
-        payeeRef: account.transferPayeeId,
+        payeeId: account.transferPayeeId,
     })
         .then((payee) => {
         payee.name = `TRANSFER: ${account.name}`;
@@ -50,13 +72,13 @@ exports.updateLinkedAccountName = (account) => __awaiter(void 0, void 0, void 0,
         });
     })
         .then((payee) => BudgetTransactionController.getAllTransactions(account.userId, {
-        payeeRef: payee.id,
+        payeeId: payee.id,
     }).then((transactions) => Promise.all(transactions.map((transaction) => BudgetTransactionController.updateTransaction(transaction, {
         payeeName: payee.name,
     })))));
     return account;
 });
-exports.createMatchingPayee = (account) => __awaiter(void 0, void 0, void 0, function* () {
+exports.createAndPostMatchingPayee = (account) => __awaiter(void 0, void 0, void 0, function* () {
     const payee = yield BudgetPayeeController.createAndPostPayee({
         userId: account.userId,
         name: `TRANSFER: ${account.name}`,

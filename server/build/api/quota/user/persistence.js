@@ -30,7 +30,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUser = exports.getUserReferenceById = exports.createAndPostUser = exports.postUser = exports.updateUser = exports.createUser = void 0;
 const _1 = require(".");
-const persistence_1 = __importStar(require("../../gateway/persistence"));
+const persistence_1 = __importStar(require("../gateway/persistence"));
 exports.createUser = (parameters) => new _1.BudgetUser(parameters);
 exports.updateUser = (user, { name, email, privilege }) => __awaiter(void 0, void 0, void 0, function* () {
     name && (user.name = name);
@@ -45,9 +45,9 @@ exports.postUser = (user) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.createAndPostUser = (explicit) => exports.postUser(exports.createUser({ explicit }));
 exports.getUserReferenceById = (userId) => persistence_1.getDocumentReference(persistence_1.default.getDB(persistence_1.CollectionTypes.QUOTA), userId, persistence_1.CollectionTypes.USERS);
-exports.getUser = ({ userRef, email, }) => __awaiter(void 0, void 0, void 0, function* () {
-    return userRef
-        ? exports.getUserReferenceById(userRef)
+exports.getUser = ({ userId, email, }) => __awaiter(void 0, void 0, void 0, function* () {
+    return userId
+        ? exports.getUserReferenceById(userId)
             .get()
             .then((user) => exports.createUser({ snapshot: user }))
         : persistence_1.default

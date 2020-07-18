@@ -9,9 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCategories = exports.getCategoryReferenceById = exports.updateCategory = exports.getCategory = exports.getAllCategories = exports.createAndPostCategory = exports.postCategories = exports.postCategory = exports.createCategory = void 0;
+exports.deleteCategories = exports.updateCategory = exports.getCategory = exports.getAllCategories = exports.getCategoryReferenceById = exports.createAndPostCategory = exports.postCategories = exports.postCategory = exports.createCategory = void 0;
 const _1 = require(".");
-const persistence_1 = require("../../gateway/persistence");
+const persistence_1 = require("../gateway/persistence");
 exports.createCategory = (parameters) => new _1.BudgetCategory(parameters);
 exports.postCategory = (category) => __awaiter(void 0, void 0, void 0, function* () {
     yield persistence_1.postModelToCollection(category, category.userId.collection(persistence_1.CollectionTypes.CATEGORIES));
@@ -19,6 +19,7 @@ exports.postCategory = (category) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.postCategories = (categories) => __awaiter(void 0, void 0, void 0, function* () { return Promise.all(categories.map((category) => exports.postCategory(category))); });
 exports.createAndPostCategory = (explicit) => __awaiter(void 0, void 0, void 0, function* () { return exports.postCategory(exports.createCategory({ explicit })); });
+exports.getCategoryReferenceById = (userRef, category) => persistence_1.getDocumentReference(userRef, category, persistence_1.CollectionTypes.CATEGORIES);
 exports.getAllCategories = (userRef, { description } = {}) => __awaiter(void 0, void 0, void 0, function* () {
     let query = userRef
         .collection(persistence_1.CollectionTypes.CATEGORIES)
@@ -30,9 +31,9 @@ exports.getAllCategories = (userRef, { description } = {}) => __awaiter(void 0, 
         .get()
         .then((categories) => categories.docs.map((snapshot) => exports.createCategory({ snapshot })));
 });
-exports.getCategory = (userRef, { categoryRef, plaidCategoryId, }) => __awaiter(void 0, void 0, void 0, function* () {
-    if (categoryRef) {
-        return exports.getCategoryReferenceById(userRef, categoryRef)
+exports.getCategory = (userRef, { categoryId, plaidCategoryId, }) => __awaiter(void 0, void 0, void 0, function* () {
+    if (categoryId) {
+        return exports.getCategoryReferenceById(userRef, categoryId)
             .get()
             .then((category) => category && exports.createCategory({ snapshot: category }));
     }
@@ -47,12 +48,12 @@ exports.getCategory = (userRef, { categoryRef, plaidCategoryId, }) => __awaiter(
     else
         return null;
 });
-exports.updateCategory = (category, { name, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.updateCategory = (category, { name, note, }) => __awaiter(void 0, void 0, void 0, function* () {
     category.name = name || category.name;
+    category.note = note || category.note;
     yield persistence_1.updateModel(category);
     return category;
 });
-exports.getCategoryReferenceById = (userRef, category) => persistence_1.getDocumentReference(userRef, category, persistence_1.CollectionTypes.CATEGORIES);
 exports.deleteCategories = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     return userId
         .collection(persistence_1.CollectionTypes.CATEGORIES)

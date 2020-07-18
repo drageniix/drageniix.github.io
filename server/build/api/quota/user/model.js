@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Privilege = void 0;
-const persistence_1 = require("../../gateway/persistence");
+const persistence_1 = require("../gateway/persistence");
 var Privilege;
 (function (Privilege) {
     Privilege[Privilege["ADMIN"] = 0] = "ADMIN";
@@ -25,12 +25,12 @@ class BudgetUser extends persistence_1.DataBaseModel {
         });
     }
     getStorageFormat() {
-        return persistence_1.filterUndefinedProperties({
+        return {
             name: this.name,
             email: this.email,
             password: this.password,
             privilege: this.privilege,
-        });
+        };
     }
 }
 exports.default = BudgetUser;

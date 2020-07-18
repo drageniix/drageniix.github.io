@@ -3,7 +3,7 @@ import * as BudgetPayeeController from ".";
 import { asyncWrapper, CustomRequest } from "../gateway/express";
 import { isAuth } from "../validations/common";
 
-const router = express.Router({ mergeParams: true });
+export const router = express.Router({ mergeParams: true });
 
 router.get(
   "/",
@@ -60,5 +60,3 @@ router.put(
         .then((payee) => res.status(200).json(payee.getDisplayFormat()))
   )
 );
-
-export default router;

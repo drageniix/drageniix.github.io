@@ -5,7 +5,7 @@ import { getPlaidAccounts } from "../gateway/plaid";
 import * as BudgetInstitutionController from "../institution";
 import { isAuth } from "../validations/common";
 
-const router = express.Router({ mergeParams: true });
+export const router = express.Router({ mergeParams: true });
 
 router.get(
   "/",
@@ -29,7 +29,9 @@ router.post(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
       BudgetAccountController.addManualAccount(req.userId, req.body)
         .then((account) => BudgetAccountController.postAccount(account))
-        .then((account) => BudgetAccountController.createMatchingPayee(account))
+        .then((account) =>
+          BudgetAccountController.createAndPostMatchingPayee(account)
+        )
         .then(({ account }) => res.status(200).json(account.getDisplayFormat()))
   )
 );
@@ -50,7 +52,9 @@ router.post(
         type: "depository",
         subtype: "checking",
       })
-        .then((account) => BudgetAccountController.createMatchingPayee(account))
+        .then((account) =>
+          BudgetAccountController.createAndPostMatchingPayee(account)
+        )
         .then(({ account }) => res.status(200).json(account.getDisplayFormat()))
   )
 );
@@ -82,7 +86,7 @@ router.post(
         .then((accounts) =>
           Promise.all(
             accounts.map((account) =>
-              BudgetAccountController.createMatchingPayee(account)
+              BudgetAccountController.createAndPostMatchingPayee(account)
             )
           )
         )
@@ -131,5 +135,3 @@ router.put(
         .then((account) => res.status(200).json(account.getDisplayFormat()))
   )
 );
-
-export default router;

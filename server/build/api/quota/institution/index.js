@@ -22,15 +22,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setUpdatedAt = exports.updateInstitution = exports.getInstitution = exports.postInstitution = exports.getInstitutionReferenceById = exports.getAllInstitutions = exports.createAndPostInstitution = exports.createInstitution = exports.BudgetInstitution = exports.BudgetInstitutionRoutes = void 0;
+exports.updateInstitution = exports.getInstitution = exports.postInstitution = exports.getInstitutionReferenceById = exports.getAllInstitutions = exports.createAndPostInstitution = exports.createInstitution = exports.importPlaidTransactionsFromInstitution = exports.BudgetInstitution = exports.BudgetInstitutionRoutes = void 0;
 const BudgetInstitutionBuiness = __importStar(require("./business"));
 const model_1 = __importDefault(require("./model"));
 exports.BudgetInstitution = model_1.default;
 const BudgetInstitutionPersistence = __importStar(require("./persistence"));
 const routes_1 = __importDefault(require("./routes"));
 exports.BudgetInstitutionRoutes = routes_1.default;
-const { setUpdatedAt } = BudgetInstitutionBuiness;
-exports.setUpdatedAt = setUpdatedAt;
+const { importPlaidTransactionsFromInstitution } = BudgetInstitutionBuiness;
+exports.importPlaidTransactionsFromInstitution = importPlaidTransactionsFromInstitution;
 const { createInstitution, createAndPostInstitution, getAllInstitutions, getInstitutionReferenceById, postInstitution, getInstitution, updateInstitution, } = BudgetInstitutionPersistence;
 exports.createInstitution = createInstitution;
 exports.createAndPostInstitution = createAndPostInstitution;

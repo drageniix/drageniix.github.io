@@ -3,26 +3,51 @@ import * as BudgetMonthController from ".";
 import { asyncWrapper, CustomRequest } from "../gateway/express";
 import { isAuth } from "../validations/common";
 
-const router = express.Router({ mergeParams: true });
+export const router = express.Router({ mergeParams: true });
 
 router.get(
   "/",
   isAuth,
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
-      req.query.date
-        ? BudgetMonthController.getMonth(req.userId, {
-            categoryId: req.params.categoryId,
-            date:
-              (req.query.date && new Date(req.query.date as string)) ||
-              new Date(),
-          }).then((month) => res.status(200).json(month.getDisplayFormat()))
-        : BudgetMonthController.getAllMonths(req.userId).then((months) =>
-            res
-              .status(200)
-              .json(months.map((month) => month.getDisplayFormat()))
-          )
+      BudgetMonthController.getAllMonths(
+        req.userId,
+        req.params.categoryId
+      ).then((months) =>
+        res.status(200).json(months.map((month) => month.getDisplayFormat()))
+      )
   )
 );
 
-export default router;
+router.get(
+  "/:monthId",
+  isAuth,
+  asyncWrapper(
+    (req: CustomRequest, res: express.Response): Promise<express.Response> =>
+      BudgetMonthController.getMonth(req.userId, {
+        categoryId: req.params.categoryId,
+        monthId: req.params.monthId,
+      }).then((month) => res.status(200).json(month.getDisplayFormat()))
+  )
+);
+
+router.put(
+  "/:monthId",
+  isAuth,
+  asyncWrapper(
+    (req: CustomRequest, res: express.Response): Promise<express.Response> =>
+      BudgetMonthController.getMonth(req.userId, {
+        categoryId: req.params.categoryId,
+        monthId: req.params.monthId,
+      })
+        .then(
+          (month) =>
+            (req.body.budget &&
+              BudgetMonthController.updateMonth(month, {
+                budget: req.body.budget,
+              })) ||
+            month
+        )
+        .then((month) => res.status(200).json(month.getDisplayFormat()))
+  )
+);

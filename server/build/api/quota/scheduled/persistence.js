@@ -9,34 +9,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateTransaction = exports.getTransaction = exports.getTransactionReferenceById = exports.getAllTransactions = exports.createAndPostTransaction = exports.postTransactions = exports.postTransaction = exports.createTransaction = void 0;
+exports.updateScheduled = exports.getScheduled = exports.getScheduledReferenceById = exports.getAllScheduleds = exports.createAndPostScheduled = exports.postScheduleds = exports.postScheduled = exports.createScheduled = void 0;
 const _1 = require(".");
 const account_1 = require("../account");
 const categories_1 = require("../categories");
 const persistence_1 = require("../gateway/persistence");
 const payees_1 = require("../payees");
-exports.createTransaction = (parameters) => new _1.BudgetTransaction(parameters);
-exports.postTransaction = (transaction) => __awaiter(void 0, void 0, void 0, function* () {
-    const collectionRef = transaction.userId.collection(persistence_1.CollectionTypes.TRANSACTIONS);
-    if (transaction.plaidTransactionId) {
-        const existing = yield collectionRef
-            .where("plaidTransactionId", "==", transaction.plaidTransactionId)
-            .get();
-        if (existing.docs.length === 0) {
-            yield persistence_1.postModelToCollection(transaction, collectionRef);
-        }
-    }
-    else {
-        yield persistence_1.postModelToCollection(transaction, collectionRef);
-    }
-    return transaction;
+exports.createScheduled = (parameters) => new _1.BudgetScheduled(parameters);
+exports.postScheduled = (scheduled) => __awaiter(void 0, void 0, void 0, function* () {
+    const collectionRef = scheduled.userId.collection(persistence_1.CollectionTypes.SCHEDULED_TRANSACTIONS);
+    yield persistence_1.postModelToCollection(scheduled, collectionRef);
+    return scheduled;
 });
-exports.postTransactions = (transactions) => __awaiter(void 0, void 0, void 0, function* () { return Promise.all(transactions.map((transaction) => exports.postTransaction(transaction))); });
-exports.createAndPostTransaction = (explicit) => exports.postTransaction(exports.createTransaction({ explicit }));
-exports.getAllTransactions = (userRef, { accountId, payeeId, categoryId, flagColor, limit, } = {}) => __awaiter(void 0, void 0, void 0, function* () {
+exports.postScheduleds = (scheduledTransactions) => __awaiter(void 0, void 0, void 0, function* () {
+    return Promise.all(scheduledTransactions.map((scheduled) => exports.postScheduled(scheduled)));
+});
+exports.createAndPostScheduled = (explicit) => exports.postScheduled(exports.createScheduled({ explicit }));
+exports.getAllScheduleds = (userRef, { accountId, payeeId, categoryId, flagColor, limit, scheduledUntil, } = {}) => __awaiter(void 0, void 0, void 0, function* () {
     let query = userRef
-        .collection(persistence_1.CollectionTypes.TRANSACTIONS)
+        .collection(persistence_1.CollectionTypes.SCHEDULED_TRANSACTIONS)
         .orderBy("date", "asc");
+    if (scheduledUntil) {
+        query = query.endBefore(scheduledUntil);
+    }
     if (accountId || payeeId || categoryId) {
         if (accountId) {
             const account = account_1.getAccountReferenceById(userRef, accountId);
@@ -59,15 +54,15 @@ exports.getAllTransactions = (userRef, { accountId, payeeId, categoryId, flagCol
     }
     return query
         .get()
-        .then((transactions) => transactions.docs.map((snapshot) => exports.createTransaction({ snapshot })));
+        .then((scheduledTransactions) => scheduledTransactions.docs.map((snapshot) => exports.createScheduled({ snapshot })));
 });
-exports.getTransactionReferenceById = (userRef, transaction) => persistence_1.getDocumentReference(userRef, transaction, persistence_1.CollectionTypes.TRANSACTIONS);
-exports.getTransaction = (userRef, ref) => __awaiter(void 0, void 0, void 0, function* () {
-    return exports.getTransactionReferenceById(userRef, ref)
+exports.getScheduledReferenceById = (userRef, scheduled) => persistence_1.getDocumentReference(userRef, scheduled, persistence_1.CollectionTypes.SCHEDULED_TRANSACTIONS);
+exports.getScheduled = (userRef, ref) => __awaiter(void 0, void 0, void 0, function* () {
+    return exports.getScheduledReferenceById(userRef, ref)
         .get()
-        .then((snapshot) => exports.createTransaction({ snapshot }));
+        .then((snapshot) => exports.createScheduled({ snapshot }));
 });
-exports.updateTransaction = (model, { accountId, accountName, payeeId, payeeName, categoryId, categoryName, amount, date, note, cleared, flagColor, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.updateScheduled = (model, { accountId, accountName, payeeId, payeeName, categoryId, categoryName, amount, date, note, frequency, flagColor, }) => __awaiter(void 0, void 0, void 0, function* () {
     model.amount = amount || model.amount;
     model.date = date || model.date;
     model.accountId = accountId || model.accountId;
@@ -77,7 +72,7 @@ exports.updateTransaction = (model, { accountId, accountName, payeeId, payeeName
     model.categoryName = categoryName || model.categoryName;
     model.categoryId = categoryId || model.categoryId;
     model.note = note || model.note;
-    model.cleared = cleared || model.cleared;
+    model.frequency = frequency || model.frequency;
     model.flagColor = flagColor || model.flagColor;
     persistence_1.updateModel(model);
     return model;

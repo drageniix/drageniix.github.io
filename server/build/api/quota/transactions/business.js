@@ -28,12 +28,48 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.importTransactions = void 0;
+exports.importTransactionsFromInstitution = exports.convertPlaidTransactions = exports.addManualTransaction = void 0;
 const _1 = require(".");
 const BudgetAccountController = __importStar(require("../account"));
 const BudgetCategoryController = __importStar(require("../categories"));
+const BudgetInstitutionController = __importStar(require("../institution"));
+const BudgetMonthController = __importStar(require("../months"));
 const BudgetPayeeController = __importStar(require("../payees"));
-exports.importTransactions = (userRef, transactions) => __awaiter(void 0, void 0, void 0, function* () {
+exports.addManualTransaction = (userRef, { accountId, payeeId, categoryId, amount, date, cleared, flagColor, note, }) => __awaiter(void 0, void 0, void 0, function* () {
+    const account = yield BudgetAccountController.getAccount(userRef, {
+        accountId: accountId,
+    }).then((account) => BudgetAccountController.updateAccount(account, {
+        availableBalance: account.availableBalance + amount,
+        currentBalance: account.currentBalance + (cleared ? amount : 0),
+    }));
+    const payee = yield BudgetPayeeController.getPayee(userRef, {
+        payeeId: payeeId,
+    });
+    const category = yield BudgetCategoryController.getCategory(userRef, {
+        categoryId: categoryId,
+    });
+    yield BudgetMonthController.getMonth(userRef, {
+        categoryId: category,
+        date: new Date(date),
+    }).then((month) => BudgetMonthController.updateMonth(month, { amount }));
+    return _1.createTransaction({
+        explicit: {
+            accountId: account.id,
+            accountName: account.name,
+            amount: amount,
+            cleared: cleared,
+            note: note,
+            date: new Date(date),
+            payeeId: payee.id,
+            payeeName: payee.name,
+            userId: userRef,
+            categoryId: category.id,
+            categoryName: category.name,
+            flagColor,
+        },
+    });
+});
+exports.convertPlaidTransactions = (userRef, transactions) => __awaiter(void 0, void 0, void 0, function* () {
     return Promise.all(transactions.map((transaction) => __awaiter(void 0, void 0, void 0, function* () {
         const account = yield BudgetAccountController.getAccount(userRef, {
             plaidAccountId: transaction.account_id,
@@ -42,7 +78,7 @@ exports.importTransactions = (userRef, transactions) => __awaiter(void 0, void 0
             plaidPayeeId: transaction.name,
         });
         const category = yield BudgetCategoryController.getCategory(userRef, {
-            categoryRef: existingPayee && existingPayee.defaultCategoryId,
+            categoryId: existingPayee && existingPayee.defaultCategoryId,
             plaidCategoryId: transaction.category_id,
         });
         const payee = existingPayee ||
@@ -68,6 +104,11 @@ exports.importTransactions = (userRef, transactions) => __awaiter(void 0, void 0
         });
     })));
 });
+exports.importTransactionsFromInstitution = (userId, { startDate, endDate }) => BudgetInstitutionController.getAllInstitutions(userId)
+    .then((institutions) => Promise.all(institutions
+    .filter((institution) => institution.plaidAccessToken)
+    .map((institution) => BudgetInstitutionController.importPlaidTransactionsFromInstitution(institution, { startDate, endDate }))))
+    .then((transactionList) => exports.convertPlaidTransactions(userId, [].concat(...transactionList)));
 // async updateAccountAmount(amount: number): Promise<BudgetTransaction> {
 //   const account = await BudgetAccount.getAccount(this.userId, {
 //     accountRef: this.accountId,

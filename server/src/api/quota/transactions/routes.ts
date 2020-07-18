@@ -3,7 +3,7 @@ import * as BudgetTransactionController from ".";
 import { asyncWrapper, CustomRequest } from "../gateway/express";
 import { isAuth } from "../validations/common";
 
-const router = express.Router({ mergeParams: true });
+export const router = express.Router({ mergeParams: true });
 
 router.get(
   "/",
@@ -72,9 +72,7 @@ router.put(
         req.userId,
         req.params.transactionId
       )
-        .then((
-          transaction //TODO: ESSENTIAL LOGIC TO UDATE ACOUNT AND MONTH!!!!!
-        ) =>
+        .then((transaction) =>
           BudgetTransactionController.updateTransaction(transaction, {
             amount: req.body.amount,
             date: req.body.date,
@@ -127,7 +125,7 @@ router.post(
       req: CustomRequest,
       res: express.Response
     ): Promise<express.Response> =>
-      BudgetTransactionController.getPlaidTransactionsFromInstitution(
+      BudgetTransactionController.importTransactionsFromInstitution(
         req.userId,
         {
           startDate: req.query.startDate as string,
@@ -146,4 +144,3 @@ router.post(
         )
   )
 );
-export default router;

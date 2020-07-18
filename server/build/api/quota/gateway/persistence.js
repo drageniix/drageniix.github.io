@@ -22,21 +22,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.filterUndefinedProperties = exports.getDocumentReference = exports.postModelToCollection = exports.updateModel = exports.deleteModel = exports.DataBaseModel = exports.CollectionTypes = void 0;
+exports.getDocumentReference = exports.postModelToCollection = exports.updateModel = exports.deleteModel = exports.filterUndefinedProperties = exports.DataBaseModel = exports.CollectionTypes = void 0;
 const firebase_admin_1 = require("firebase-admin");
-const persistence_1 = __importDefault(require("../../middleware/persistence"));
-__exportStar(require("../../middleware/persistence"), exports);
+const persistence_1 = __importDefault(require("../../../middleware/persistence"));
+__exportStar(require("../../../middleware/persistence"), exports);
 var CollectionTypes;
 (function (CollectionTypes) {
     CollectionTypes["QUOTA"] = "quota";
+    CollectionTypes["BUDGET"] = "budget";
     CollectionTypes["USERS"] = "users";
     CollectionTypes["INSTITUTION"] = "institution";
     CollectionTypes["PAYEES"] = "payees";
     CollectionTypes["ACCOUNTS"] = "accounts";
     CollectionTypes["CATEGORIES"] = "categories";
-    CollectionTypes["CATEGORY_GROUPS"] = "category_groups";
     CollectionTypes["MONTHS"] = "months";
-    CollectionTypes["MONTH_CATEGORIES"] = "categories";
     CollectionTypes["TRANSACTIONS"] = "transactions";
     CollectionTypes["SCHEDULED_TRANSACTIONS"] = "scheduled_transactions";
 })(CollectionTypes = exports.CollectionTypes || (exports.CollectionTypes = {}));
@@ -46,30 +45,36 @@ class DataBaseModel {
     }
 }
 exports.DataBaseModel = DataBaseModel;
+exports.filterUndefinedProperties = (input, toPersistence = false) => {
+    const filteredObject = {};
+    Object.entries(input).forEach(([key, value]) => {
+        if (typeof value !== "undefined") {
+            if (toPersistence) {
+                filteredObject[key] =
+                    value instanceof Date ? firebase_admin_1.firestore.Timestamp.fromDate(value) : value;
+            }
+            else {
+                filteredObject[key] = value;
+            }
+        }
+    });
+    return filteredObject;
+};
 exports.deleteModel = (model) => __awaiter(void 0, void 0, void 0, function* () {
     yield model.id.delete();
     return model;
 });
 exports.updateModel = (model) => __awaiter(void 0, void 0, void 0, function* () {
-    yield model.id.update(model.getStorageFormat());
+    yield model.id.update(exports.filterUndefinedProperties(model.getStorageFormat(), true));
     return model;
 });
 exports.postModelToCollection = (model, collection) => __awaiter(void 0, void 0, void 0, function* () {
-    model.id = yield collection.add(model.getStorageFormat());
+    model.id = yield collection.add(exports.filterUndefinedProperties(model.getStorageFormat(), true));
     return model;
 });
 exports.getDocumentReference = (db, ref, collectionType) => (typeof ref === "string" && db.collection(collectionType).doc(ref)) ||
     (ref instanceof DataBaseModel && ref.id) ||
     (ref instanceof firebase_admin_1.firestore.DocumentReference && ref);
-exports.filterUndefinedProperties = (input) => {
-    const filteredObject = {};
-    Object.entries(input).forEach(([key, value]) => {
-        if (typeof value !== "undefined") {
-            filteredObject[key] = value;
-        }
-    });
-    return filteredObject;
-};
 exports.default = {
     getDB: (collection) => {
         return persistence_1.default.getFirestoreDB().collection(collection).doc(process.env.NODE_ENV);

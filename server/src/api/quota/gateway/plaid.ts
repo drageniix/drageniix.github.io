@@ -62,4 +62,4 @@ export const exchangePlaidAccessTokenForItem = async (
   };
 };
 
-export * from "../../../middleware/plaid";
+export default plaid;

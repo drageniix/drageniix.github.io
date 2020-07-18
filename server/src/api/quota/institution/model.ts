@@ -5,7 +5,7 @@ import {
   filterUndefinedProperties,
 } from "../gateway/persistence";
 
-export default class BudgetInstitution extends DataBaseModel {
+export class BudgetInstitution extends DataBaseModel {
   name: string;
   note?: string;
   active: boolean;

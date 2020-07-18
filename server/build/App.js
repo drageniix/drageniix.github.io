@@ -51,7 +51,7 @@ class App {
                 message: "Hello World!",
             });
         });
-        this.app.use("/v1/quota", routes.quota);
+        this.app.use("/quota/v1", routes.quota);
         this.app.use(express_1.handle400Errors);
         this.app.use(express_1.handleErrors);
     }

@@ -22,14 +22,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initiateLogin = exports.hashPassword = exports.getUserReferenceById = exports.getUser = exports.updateUser = exports.postUser = exports.createAndPostUser = exports.createUser = exports.Privilege = exports.BudgetUser = exports.BudgetUserRoutes = void 0;
+exports.initiateLogin = exports.hashPassword = exports.getUserReferenceById = exports.getUser = exports.updateUser = exports.postUser = exports.createAndPostUser = exports.createUser = exports.Privilege = exports.BudgetUser = exports.BudgetUserRouter = void 0;
 const BudgetUserBusiness = __importStar(require("./business"));
 const model_1 = __importStar(require("./model"));
 exports.BudgetUser = model_1.default;
 Object.defineProperty(exports, "Privilege", { enumerable: true, get: function () { return model_1.Privilege; } });
 const BudgetUserPersistence = __importStar(require("./persistence"));
 const routes_1 = __importDefault(require("./routes"));
-exports.BudgetUserRoutes = routes_1.default;
+exports.BudgetUserRouter = routes_1.default;
 const { hashPassword, initiateLogin } = BudgetUserBusiness;
 exports.hashPassword = hashPassword;
 exports.initiateLogin = initiateLogin;

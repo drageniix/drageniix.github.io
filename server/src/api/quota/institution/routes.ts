@@ -7,7 +7,7 @@ import {
 } from "../gateway/plaid";
 import { isAuth } from "../validations/common";
 
-const router = express.Router({ mergeParams: true });
+export const router = express.Router({ mergeParams: true });
 
 // should only be one
 router.post(
@@ -71,5 +71,3 @@ router.post(
     }
   )
 );
-
-export default router;

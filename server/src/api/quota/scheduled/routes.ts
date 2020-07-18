@@ -3,7 +3,7 @@ import * as BudgetScheduledController from ".";
 import { asyncWrapper, CustomRequest } from "../gateway/express";
 import { isAuth } from "../validations/common";
 
-const router = express.Router({ mergeParams: true });
+export const router = express.Router({ mergeParams: true });
 
 router.get(
   "/",
@@ -76,5 +76,3 @@ router.put(
         .then((scheduled) => res.status(200).json(scheduled.getDisplayFormat()))
   )
 );
-
-export default router;

@@ -30,18 +30,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateLinkedPayeeName = void 0;
 const BudgetAccountController = __importStar(require("../account"));
+const BudgetScheduledController = __importStar(require("../scheduled"));
 const BudgetTransactionController = __importStar(require("../transactions"));
 exports.updateLinkedPayeeName = (payee) => __awaiter(void 0, void 0, void 0, function* () {
     if (payee.transferAccountId) {
         yield BudgetAccountController.getAccount(payee.userId, {
-            accountRef: payee.transferAccountId,
+            accountId: payee.transferAccountId,
         }).then((account) => BudgetAccountController.updateAccount(account, {
             transferPayeeName: payee.name,
         }));
     }
     yield BudgetTransactionController.getAllTransactions(payee.userId, {
-        payeeRef: payee.id,
+        payeeId: payee.id,
     }).then((transactions) => Promise.all(transactions.map((transaction) => BudgetTransactionController.updateTransaction(transaction, {
+        payeeName: payee.name,
+    }))));
+    yield BudgetScheduledController.getAllScheduleds(payee.userId, {
+        payeeId: payee.id,
+    }).then((scheduleds) => Promise.all(scheduleds.map((scheduled) => BudgetScheduledController.updateScheduled(scheduled, {
         payeeName: payee.name,
     }))));
     return payee;

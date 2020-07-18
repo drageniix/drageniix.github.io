@@ -9,12 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPayeeReferenceById = exports.getAllPayees = exports.getPayee = exports.createAndPostPayee = exports.postPayee = exports.updatePayee = exports.createPayee = void 0;
+exports.getAllPayees = exports.getPayee = exports.getPayeeReferenceById = exports.createAndPostPayee = exports.postPayee = exports.updatePayee = exports.createPayee = void 0;
 const _1 = require(".");
-const persistence_1 = require("../../gateway/persistence");
+const persistence_1 = require("../gateway/persistence");
 exports.createPayee = (parameters) => new _1.BudgetPayee(parameters);
-exports.updatePayee = (payee, { name, transferAccountName, transferAccountId, } = {}) => __awaiter(void 0, void 0, void 0, function* () {
+exports.updatePayee = (payee, { name, note, transferAccountName, transferAccountId, } = {}) => __awaiter(void 0, void 0, void 0, function* () {
     payee.name = name || payee.name;
+    payee.note = note || payee.note;
     payee.transferAccountName = transferAccountName || payee.transferAccountName;
     payee.transferAccountId = transferAccountId || payee.transferAccountId;
     yield persistence_1.updateModel(payee);
@@ -25,7 +26,8 @@ exports.postPayee = (payee) => __awaiter(void 0, void 0, void 0, function* () {
     return payee;
 });
 exports.createAndPostPayee = (explicit) => exports.postPayee(exports.createPayee({ explicit }));
-exports.getPayee = (userRef, { payeeRef, plaidPayeeId, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getPayeeReferenceById = (userRef, payee) => persistence_1.getDocumentReference(userRef, payee, persistence_1.CollectionTypes.PAYEES);
+exports.getPayee = (userRef, { payeeId, plaidPayeeId, }) => __awaiter(void 0, void 0, void 0, function* () {
     if (plaidPayeeId) {
         return userRef
             .collection(persistence_1.CollectionTypes.PAYEES)
@@ -36,8 +38,8 @@ exports.getPayee = (userRef, { payeeRef, plaidPayeeId, }) => __awaiter(void 0, v
                 snapshot: Payees.docs[0],
             }));
     }
-    else if (payeeRef) {
-        return exports.getPayeeReferenceById(userRef, payeeRef)
+    else if (payeeId) {
+        return exports.getPayeeReferenceById(userRef, payeeId)
             .get()
             .then((Payee) => Payee && exports.createPayee({ snapshot: Payee }));
     }
@@ -50,4 +52,3 @@ exports.getAllPayees = (userRef) => __awaiter(void 0, void 0, void 0, function* 
         .get()
         .then((payees) => payees.docs.map((snapshot) => exports.createPayee({ snapshot })));
 });
-exports.getPayeeReferenceById = (userRef, payee) => persistence_1.getDocumentReference(userRef, payee, persistence_1.CollectionTypes.PAYEES);

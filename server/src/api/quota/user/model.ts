@@ -10,7 +10,7 @@ export enum Privilege {
   USER,
 }
 
-export default class BudgetUser extends DataBaseModel {
+export class BudgetUser extends DataBaseModel {
   name: string;
   password: string;
   email: string;

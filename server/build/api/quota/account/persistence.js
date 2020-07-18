@@ -9,12 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAccountReferenceById = exports.getAllAccounts = exports.getAccount = exports.createAndPostAccount = exports.postAccounts = exports.postAccount = exports.createAccount = exports.updateAccount = void 0;
+exports.getAllAccounts = exports.getAccount = exports.getAccountReferenceById = exports.createAndPostAccount = exports.postAccounts = exports.postAccount = exports.createAccount = exports.updateAccount = void 0;
 const _1 = require(".");
-const persistence_1 = require("../../gateway/persistence");
+const persistence_1 = require("../gateway/persistence");
 const institution_1 = require("../institution");
-exports.updateAccount = (account, { name, transferPayeeName, transferPayeeId, } = {}) => __awaiter(void 0, void 0, void 0, function* () {
-    account.name = name;
+exports.updateAccount = (account, { name, transferPayeeName, transferPayeeId, availableBalance, currentBalance, note, } = {}) => __awaiter(void 0, void 0, void 0, function* () {
+    account.name = name || account.name;
+    account.note = note || account.note;
+    account.availableBalance = availableBalance || account.availableBalance;
+    account.currentBalance = currentBalance || account.currentBalance;
     account.transferPayeeName = transferPayeeName || account.transferPayeeName;
     account.transferPayeeId = transferPayeeId || account.transferPayeeId;
     yield persistence_1.updateModel(account);
@@ -38,7 +41,8 @@ exports.postAccount = (account) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.postAccounts = (accounts) => __awaiter(void 0, void 0, void 0, function* () { return Promise.all(accounts.map((account) => exports.postAccount(account))); });
 exports.createAndPostAccount = (explicit) => exports.postAccount(exports.createAccount({ explicit }));
-exports.getAccount = (userRef, { accountRef, plaidAccountId, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getAccountReferenceById = (userRef, account) => persistence_1.getDocumentReference(userRef, account, persistence_1.CollectionTypes.ACCOUNTS);
+exports.getAccount = (userRef, { accountId, plaidAccountId, }) => __awaiter(void 0, void 0, void 0, function* () {
     if (plaidAccountId) {
         return userRef
             .collection(persistence_1.CollectionTypes.ACCOUNTS)
@@ -47,24 +51,23 @@ exports.getAccount = (userRef, { accountRef, plaidAccountId, }) => __awaiter(voi
             .then((accounts) => accounts.docs.length === 1 &&
             exports.createAccount({ snapshot: accounts.docs[0] }));
     }
-    else if (accountRef) {
-        return exports.getAccountReferenceById(userRef, accountRef)
+    else if (accountId) {
+        return exports.getAccountReferenceById(userRef, accountId)
             .get()
             .then((snapshot) => snapshot && exports.createAccount({ snapshot }));
     }
     else
         return null;
 });
-exports.getAllAccounts = (userRef, { institutionRef, } = {}) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getAllAccounts = (userRef, { institutionId, } = {}) => __awaiter(void 0, void 0, void 0, function* () {
     let query = userRef
         .collection(persistence_1.CollectionTypes.ACCOUNTS)
         .where("hidden", "==", false);
-    if (institutionRef) {
-        const institutionId = institution_1.getInstitutionReferenceById(userRef, institutionRef);
-        query = query.where("institutionId", "==", institutionId.id);
+    if (institutionId) {
+        const institution = institution_1.getInstitutionReferenceById(userRef, institutionId);
+        query = query.where("institutionId", "==", institution.id);
     }
     return query
         .get()
         .then((categories) => categories.docs.map((snapshot) => exports.createAccount({ snapshot })));
 });
-exports.getAccountReferenceById = (userRef, account) => persistence_1.getDocumentReference(userRef, account, persistence_1.CollectionTypes.ACCOUNTS);

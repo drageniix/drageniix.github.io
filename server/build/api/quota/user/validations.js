@@ -35,6 +35,7 @@ exports.validateLogin = exports.validateSignup = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const express_validator_1 = require("express-validator");
 const BudgetUserController = __importStar(require("."));
+const commonMiddleware = __importStar(require("../validations/common"));
 exports.validateSignup = [
     express_validator_1.body("email")
         .isEmail()
@@ -55,6 +56,7 @@ exports.validateSignup = [
         else
             return true;
     }),
+    commonMiddleware.inputValidation,
 ];
 exports.validateLogin = [
     express_validator_1.body("email")
@@ -77,4 +79,5 @@ exports.validateLogin = [
             throw new Error("Incorrect email or password.");
         }
     })),
+    commonMiddleware.inputValidation,
 ];

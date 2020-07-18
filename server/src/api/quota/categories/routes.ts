@@ -2,10 +2,10 @@ import express from "express";
 import * as BudgetCategoryController from ".";
 import { asyncWrapper, CustomRequest } from "../gateway/express";
 import plaid from "../gateway/plaid";
-import { BudgetMonthRouter } from "../months";
+import { router as BudgetMonthRouter } from "../months";
 import { isAuth } from "../validations/common";
 
-const router = express.Router({ mergeParams: true });
+export const router = express.Router({ mergeParams: true });
 
 router.use("/:categoryId/months", BudgetMonthRouter);
 
@@ -91,5 +91,3 @@ router.post(
         )
   )
 );
-
-export default router;

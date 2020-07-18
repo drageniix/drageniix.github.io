@@ -5,7 +5,7 @@ import {
   filterUndefinedProperties,
 } from "../gateway/persistence";
 
-export default class BudgetSuggested extends DataBaseModel {
+export class BudgetSuggested extends DataBaseModel {
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;

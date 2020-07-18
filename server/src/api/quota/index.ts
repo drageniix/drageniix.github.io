@@ -1,11 +1,12 @@
 import express from "express";
-import { BudgetAccountRoutes } from "./account";
-import { BudgetCategoryRoutes } from "./categories";
-import { BudgetInstitutionRoutes } from "./institution";
-import { BudgetPayeeRouter } from "./payees";
-import { BudgetScheduledRouter } from "./scheduled";
-import { BudgetTransactionRouter } from "./transactions";
-import { BudgetUserRouter } from "./user";
+import { router as BudgetAccountRoutes } from "./account";
+import { router as BudgetSuggestedRouter } from "./budget";
+import { router as BudgetCategoryRoutes } from "./categories";
+import { router as BudgetInstitutionRoutes } from "./institution";
+import { router as BudgetPayeeRouter } from "./payees";
+import { router as BudgetScheduledRouter } from "./scheduled";
+import { router as BudgetTransactionRouter } from "./transactions";
+import { router as BudgetUserRouter } from "./user";
 
 const router = express.Router();
 
@@ -22,5 +23,7 @@ router.use("/scheduled", BudgetScheduledRouter);
 router.use("/user", BudgetUserRouter);
 
 router.use("/institution", BudgetInstitutionRoutes);
+
+router.use("/budget", BudgetSuggestedRouter);
 
 export default router;

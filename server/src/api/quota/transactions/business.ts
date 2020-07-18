@@ -10,6 +10,8 @@ import * as BudgetInstitutionController from "../institution";
 import * as BudgetMonthController from "../months";
 import * as BudgetPayeeController from "../payees";
 
+// TODO: update accounts, payees, and months
+
 export const addManualTransaction = async (
   userRef: DocumentReference,
   {
@@ -51,8 +53,10 @@ export const addManualTransaction = async (
 
   await BudgetMonthController.getMonth(userRef, {
     categoryId: category,
-    date: new Date(date),
-  }).then((month) => BudgetMonthController.updateMonth(month, { amount }));
+    monthId: date,
+  }).then((month) =>
+    BudgetMonthController.updateMonth(month, { activity: amount })
+  );
 
   return createTransaction({
     explicit: {
@@ -137,33 +141,3 @@ export const importTransactionsFromInstitution = (
     .then((transactionList) =>
       convertPlaidTransactions(userId, [].concat(...transactionList))
     );
-
-// async updateAccountAmount(amount: number): Promise<BudgetTransaction> {
-//   const account = await BudgetAccount.getAccount(this.userId, {
-//     accountRef: this.accountId,
-//   });
-//   account.currentBalance += amount;
-//   account.availableBalance += amount;
-//   await account.update();
-//   this.accountId = account.id;
-//   this.accountName = account.name;
-//   return this.update();
-// }
-
-// async updateDate(newDate: Date): Promise<BudgetTransaction> {
-//   await this.updateCategoryAmount(-this.amount);
-//   this.date = newDate;
-//   await this.updateCategoryAmount(this.amount);
-//   return this.update();
-// }
-
-// async updatePayee(
-//   payeeId: documentReferenceType
-// ): Promise<BudgetTransaction> {
-//   const payee = await BudgetTransactionPayee.getPayee(this.userId, {
-//     payeeRef: payeeId,
-//   });
-//   this.payeeId = payee.id;
-//   this.payeeName = payee.name;
-//   return this.update();
-// }

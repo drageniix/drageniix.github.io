@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.exchangePlaidAccessTokenForItem = exports.getPlaidInstitution = exports.getPlaidAccounts = exports.getPlaidItem = exports.getPlaidTransactions = exports.getPlaidCategories = exports.exchangePlaidPublicToken = void 0;
-const plaid_1 = __importDefault(require("../../middleware/plaid"));
+const plaid_1 = __importDefault(require("../../../middleware/plaid"));
 exports.exchangePlaidPublicToken = (publicToken) => plaid_1.default.getPlaidClient().exchangePublicToken(publicToken);
 exports.getPlaidCategories = () => plaid_1.default.getPlaidClient().getCategories();
 exports.getPlaidTransactions = (accessToken, startDate, endDate = new Date().toISOString().slice(0, 10)) => plaid_1.default.getPlaidClient().getTransactions(accessToken, startDate, endDate);

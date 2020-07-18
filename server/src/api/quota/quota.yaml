@@ -98,16 +98,53 @@ paths:
         default:
           $ref: "#/components/responses/DefaultResponse"
   /category/{categoryId}/month:
+    parameters: [$ref: "#/components/parameters/categoryIdPath"]
+    get:
+      summary: Get All Months
+      operationId: monthsGet
+      tags:
+        - Category
+      responses:
+        200:
+          description: Months
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthArray"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+  /category/{categoryId}/month/{monthId}:
     parameters:
       [
+        $ref: "#/components/parameters/monthIdPath",
         $ref: "#/components/parameters/categoryIdPath",
-        $ref: "#/components/parameters/dateQuery",
       ]
     get:
       summary: Get Month
       operationId: monthGet
       tags:
         - Category
+      responses:
+        200:
+          description: Month
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Month"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
+    put:
+      summary: Update Month
+      operationId: monthPut
+      tags:
+        - Category
+      requestBody:
+        description: Month Update Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonthUpdateRequest"
       responses:
         200:
           description: Month
@@ -250,6 +287,13 @@ paths:
       operationId: accountDefault
       tags:
         - Account
+      requestBody:
+        description: Institution to attach account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountDefaultRequest"
       responses:
         200:
           description: Cash Account
@@ -557,6 +601,22 @@ paths:
                 $ref: "#/components/schemas/ScheduledTransaction"
         default:
           $ref: "#/components/responses/DefaultResponse"
+  /budget:
+    get:
+      parameters: [$ref: "#/components/parameters/dateQuery"]
+      summary: Calculate Budget
+      operationId: budgetGet
+      tags:
+        - Budget
+      responses:
+        200:
+          description: Budget
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
 components:
   parameters:
     dateQuery:
@@ -608,6 +668,14 @@ components:
         type: string
         minimum: 1
       description: The payee ID
+    monthIdPath:
+      in: path
+      name: monthId
+      required: true
+      schema:
+        type: string
+        minimum: 1
+      description: Date of the month
     scheduledIdPath:
       in: path
       name: scheduledId
@@ -664,12 +732,19 @@ components:
       schema:
         type: string
         format: date
+
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
   schemas:
+    AccountDefaultRequest:
+      type: object
+      properties:
+        institutionId:
+          type: string
     AccountUpdateRequest:
       type: object
       properties:
@@ -736,6 +811,29 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/Account"
+    Budget:
+      type: object
+      properties:
+        id:
+          type: string
+        goalCreationMonth:
+          type: string
+          format: date
+        goalTarget:
+          type: number
+        goalTargetMonth:
+          type: string
+          format: date
+        goalType:
+          type: string
+        goalPriority:
+          type: number
+        scheduled:
+          type: number
+        underfunded:
+          type: number
+        balance:
+          type: number
     CategoryUpdateRequest:
       type: object
       properties:
@@ -789,6 +887,15 @@ components:
         updatedAt:
           type: string
           format: date
+    MonthArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Month"
+    MonthUpdateRequest:
+      type: object
+      properties:
+        budget:
+          type: number
     Month:
       type: object
       properties:
@@ -809,6 +916,8 @@ components:
       type: object
       properties:
         name:
+          type: string
+        defaultCategoryId:
           type: string
     PayeeUpdateRequest:
       type: object
@@ -1024,6 +1133,7 @@ components:
                 type: string
         path:
           type: string
+
   responses:
     UserTokenResponse:
       description: JWT Token For user

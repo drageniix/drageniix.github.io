@@ -30,6 +30,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateLinkedCategoryName = exports.createDefaultCategories = void 0;
 const _1 = require(".");
+const BudgetScheduledController = __importStar(require("../scheduled"));
 const BudgetTransactionController = __importStar(require("../transactions"));
 exports.createDefaultCategories = (userId, categories) => __awaiter(void 0, void 0, void 0, function* () {
     const categoryMap = categories.reduce((prev, curr) => {
@@ -48,8 +49,13 @@ exports.createDefaultCategories = (userId, categories) => __awaiter(void 0, void
 });
 exports.updateLinkedCategoryName = (category) => __awaiter(void 0, void 0, void 0, function* () {
     yield BudgetTransactionController.getAllTransactions(category.userId, {
-        categoryRef: category,
+        categoryId: category,
     }).then((transactions) => Promise.all(transactions.map((transaction) => BudgetTransactionController.updateTransaction(transaction, {
+        categoryName: category.name,
+    }))));
+    yield BudgetScheduledController.getAllScheduleds(category.userId, {
+        categoryId: category,
+    }).then((scheduleds) => Promise.all(scheduleds.map((scheduled) => BudgetScheduledController.updateScheduled(scheduled, {
         categoryName: category.name,
     }))));
     return category;

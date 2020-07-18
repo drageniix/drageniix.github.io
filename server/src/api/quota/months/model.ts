@@ -5,9 +5,10 @@ import {
   filterUndefinedProperties,
 } from "../gateway/persistence";
 
-export default class BudgetMonth extends DataBaseModel {
+export class BudgetMonth extends DataBaseModel {
   date: Date;
   balance: number;
+  carryOverBalance: number;
   budgeted: number;
   activity: number;
   categoryId?: DocumentReference;
@@ -25,8 +26,15 @@ export default class BudgetMonth extends DataBaseModel {
       snapshot,
     });
 
-    const { categoryId, activity, budgeted, date, balance, userId } =
-      explicit || snapshot.data();
+    const {
+      categoryId,
+      activity,
+      budgeted,
+      date,
+      balance,
+      carryOverBalance,
+      userId,
+    } = explicit || snapshot.data();
 
     this.date =
       (snapshot && date && date.toDate()) ||
@@ -35,6 +43,7 @@ export default class BudgetMonth extends DataBaseModel {
     this.activity = activity || 0;
     this.budgeted = budgeted || 0;
     this.balance = balance || 0;
+    this.carryOverBalance = carryOverBalance || 0;
     this.userId = userId;
     this.categoryId = categoryId;
   }
@@ -46,6 +55,7 @@ export default class BudgetMonth extends DataBaseModel {
       activity: this.activity,
       budgeted: this.budgeted,
       balance: this.balance,
+      carryOverBalance: this.carryOverBalance,
       categoryId: this.categoryId && this.categoryId.id,
     });
   }
@@ -56,6 +66,7 @@ export default class BudgetMonth extends DataBaseModel {
       activity: this.activity,
       budgeted: this.budgeted,
       balance: this.balance,
+      carryOverBalance: this.carryOverBalance,
       userId: this.userId,
       categoryId: this.categoryId,
     };
@@ -68,6 +79,7 @@ export type BudgetMonthInternalProperties = {
   budgeted?: number;
   date?: Date;
   balance?: number;
+  carryOverBalance?: number;
   userId?: DocumentReference;
   categoryId?: DocumentReference;
 };
@@ -78,5 +90,6 @@ type BudgetMonthDisplayProperties = {
   activity?: number;
   budgeted?: number;
   balance?: number;
+  carryOverBalance?: number;
   categoryId?: string;
 };

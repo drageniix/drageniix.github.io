@@ -20,6 +20,7 @@ exports.asyncWrapper = (fn) => (req, res, next) => __awaiter(void 0, void 0, voi
         return Promise.resolve(response);
     }
     catch (err) {
+        logger_1.default.error(err);
         return next(err);
     }
 });

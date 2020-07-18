@@ -78,8 +78,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const BudgetTransactionController = __importStar(require("."));
 const express_2 = require("../gateway/express");
-const plaid_1 = require("../../gateway/plaid");
-const BudgetInstitutionController = __importStar(require("../institution"));
 const common_1 = require("../validations/common");
 const router = express_1.default.Router({ mergeParams: true });
 router.get(
@@ -87,9 +85,10 @@ router.get(
   common_1.isAuth,
   express_2.asyncWrapper((req, res) =>
     BudgetTransactionController.getAllTransactions(req.userId, {
-      accountRef: req.query.accountId,
-      payeeRef: req.query.payeeId,
-      categoryRef: req.query.categoryId,
+      accountId: req.query.accountId,
+      payeeId: req.query.payeeId,
+      categoryId: req.query.categoryId,
+      flagColor: req.query.flagColor,
     }).then((transactions) =>
       res.status(200).json({
         transactions: transactions.map((transaction) =>
@@ -103,11 +102,22 @@ router.post(
   "/",
   common_1.isAuth,
   express_2.asyncWrapper((req, res) =>
-    BudgetTransactionController.createAndPostTransaction(
-      Object.assign(Object.assign({}, req.body), { userId: req.userId })
-    ).then((transaction) =>
-      res.status(200).json(transaction.getDisplayFormat())
-    )
+    BudgetTransactionController.addManualTransaction(req.userId, {
+      accountId: req.body.accountId,
+      payeeId: req.body.payeeId,
+      categoryId: req.body.categoryId,
+      amount: req.body.amount,
+      date: req.body.date,
+      cleared: req.body.cleared,
+      flagColor: req.body.flagColor,
+      note: req.body.note,
+    })
+      .then((transaction) =>
+        BudgetTransactionController.postTransaction(transaction)
+      )
+      .then((transaction) =>
+        res.status(200).json(transaction.getDisplayFormat())
+      )
   )
 );
 router.get(
@@ -134,6 +144,9 @@ router.put(
         BudgetTransactionController.updateTransaction(transaction, {
           amount: req.body.amount,
           date: req.body.date,
+          note: req.body.note,
+          cleared: req.body.cleared,
+          flagColor: req.body.flagColor,
         })
       )
       .then((transaction) =>
@@ -141,41 +154,46 @@ router.put(
       )
   )
 );
-router.get(
+router.post(
+  "/:transactionId/duplicate",
+  common_1.isAuth,
+  express_2.asyncWrapper((req, res) =>
+    BudgetTransactionController.getTransaction(
+      req.userId,
+      req.params.transactionId
+    )
+      .then((transaction) =>
+        BudgetTransactionController.addManualTransaction(req.userId, {
+          accountId: transaction.accountId,
+          categoryId: transaction.categoryId,
+          payeeId: transaction.payeeId,
+          amount: req.body.amount,
+          date: req.body.date,
+          cleared: req.body.cleared,
+          note: req.body.note,
+          flagColor: req.body.flagColor,
+        })
+      )
+      .then((transaction) =>
+        BudgetTransactionController.postTransaction(transaction)
+      )
+      .then((transaction) =>
+        res.status(200).json(transaction.getDisplayFormat())
+      )
+  )
+);
+router.post(
   "/import",
   common_1.isAuth,
   express_2.asyncWrapper((req, res) =>
     __awaiter(void 0, void 0, void 0, function* () {
-      return BudgetInstitutionController.getAllInstitutions(req.userId)
-        .then((institutions) =>
-          Promise.all(
-            institutions.map((institution) =>
-              __awaiter(void 0, void 0, void 0, function* () {
-                const startDate =
-                    req.query.start ||
-                    institution.updatedAt.toISOString().slice(0, 10),
-                  endDate =
-                    req.query.end || new Date().toISOString().slice(0, 10);
-                const { transactions } = yield plaid_1.getPlaidTransactions(
-                  institution.plaidAccessToken,
-                  startDate,
-                  endDate
-                );
-                yield BudgetInstitutionController.setUpdatedAt(
-                  institution,
-                  endDate
-                );
-                return transactions;
-              })
-            )
-          )
-        )
-        .then((transactionList) =>
-          BudgetTransactionController.importTransactions(
-            req.userId,
-            [].concat(...transactionList)
-          )
-        )
+      return BudgetTransactionController.getPlaidTransactionsFromInstitution(
+        req.userId,
+        {
+          startDate: req.query.startDate,
+          endDate: req.query.endDate,
+        }
+      )
         .then((transactions) =>
           BudgetTransactionController.postTransactions(transactions)
         )

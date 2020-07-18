@@ -5,7 +5,7 @@ import {
   filterUndefinedProperties,
 } from "../gateway/persistence";
 
-export default class BudgetTransactionPayee extends DataBaseModel {
+export class BudgetPayee extends DataBaseModel {
   name: string;
   originalName: string;
   defaultCategoryId?: DocumentReference;

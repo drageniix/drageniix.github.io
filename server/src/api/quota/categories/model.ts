@@ -6,7 +6,7 @@ import {
   filterUndefinedProperties,
 } from "../gateway/persistence";
 
-export default class BudgetCategory extends DataBaseModel {
+export class BudgetCategory extends DataBaseModel {
   goalCreationMonth?: Date;
   goalTarget?: number;
   goalTargetMonth?: Date;

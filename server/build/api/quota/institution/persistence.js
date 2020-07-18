@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getInstitution = exports.getInstitutionReferenceById = exports.updateInstitution = exports.getAllInstitutions = exports.createAndPostInstitution = exports.postInstitution = exports.createInstitution = void 0;
 const _1 = require(".");
-const persistence_1 = require("../../gateway/persistence");
+const persistence_1 = require("../gateway/persistence");
 exports.createInstitution = (parameters) => new _1.BudgetInstitution(parameters);
 exports.postInstitution = (institution) => __awaiter(void 0, void 0, void 0, function* () {
     yield persistence_1.postModelToCollection(institution, institution.userId.collection(persistence_1.CollectionTypes.INSTITUTION));

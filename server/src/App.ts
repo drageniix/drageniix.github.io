@@ -8,7 +8,7 @@ import {
 } from "./middleware/express";
 import io from "./middleware/socket";
 
-export default class App {
+export class App {
   public app: express.Application;
 
   constructor() {

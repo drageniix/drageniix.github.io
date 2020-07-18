@@ -3,7 +3,7 @@ import * as BudgetUserController from ".";
 import { asyncWrapper, CustomRequest } from "../gateway/express";
 import { validateLogin, validateSignup } from "./validations";
 
-const router = express.Router({ mergeParams: true });
+export const router = express.Router({ mergeParams: true });
 
 router.post(
   "/",
@@ -41,5 +41,3 @@ router.post(
       )
   )
 );
-
-export default router;

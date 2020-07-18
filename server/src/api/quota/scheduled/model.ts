@@ -5,7 +5,7 @@ import {
   filterUndefinedProperties,
 } from "../gateway/persistence";
 
-export default class BudgetScheduled extends DataBaseModel {
+export class BudgetScheduled extends DataBaseModel {
   date: Date;
   amount: number;
   note?: string;
@@ -81,6 +81,7 @@ export default class BudgetScheduled extends DataBaseModel {
         (typeof this.categoryId === "object" && this.categoryId.id) ||
         this.categoryId,
       categoryName: this.categoryName,
+      frequency: this.frequency,
     });
   }
 

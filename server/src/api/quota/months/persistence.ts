@@ -10,6 +10,8 @@ import {
   updateModel,
 } from "../gateway/persistence";
 
+const dateRegex = new RegExp(/^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])$/, "g");
+
 export const createMonth = (parameters: {
   explicit?: BudgetMonthInternalProperties;
   snapshot?: DocumentSnapshot;
@@ -31,28 +33,33 @@ export const createAndPostMonth = async (
 export const updateMonth = async (
   month: BudgetMonth,
   {
-    amount,
+    activity,
+    carryOverBalance,
     budget,
   }: {
-    amount?: number;
+    activity?: number;
+    carryOverBalance?: number;
     budget?: number;
   }
 ): Promise<BudgetMonth> => {
-  if (amount) {
-    month.balance += amount;
-    month.activity += amount;
+  if (activity) {
+    month.activity += activity;
   }
 
+  month.carryOverBalance = carryOverBalance || month.carryOverBalance;
   month.budgeted = budget || month.budgeted;
+  month.balance = month.activity + month.budgeted + month.carryOverBalance;
 
   await updateModel(month);
   return month;
 };
 
+// TODO: get months endAt date ( desc )
 export const getAllMonths = async (
-  categoryRef: DocumentReference
+  userRef: DocumentReference,
+  categoryId: documentReferenceType
 ): Promise<BudgetMonth[]> =>
-  categoryRef
+  BudgetCategoryController.getCategoryReferenceById(userRef, categoryId)
     .collection(CollectionTypes.MONTHS)
     .orderBy("date", "desc")
     .get()
@@ -69,18 +76,20 @@ export const getMonth = async (
   {
     categoryId,
     monthId,
-    date,
   }: {
     categoryId: documentReferenceType;
-    monthId?: documentReferenceType;
-    date?: Date;
+    monthId: documentReferenceType;
   }
 ): Promise<BudgetMonth> => {
   const category = await BudgetCategoryController.getCategory(userRef, {
     categoryId,
   });
 
-  if (date) {
+  if (
+    typeof monthId == "string" &&
+    (monthId === "current" || monthId.match(dateRegex))
+  ) {
+    const date = monthId === "current" ? new Date() : new Date(monthId);
     const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
     const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
 
@@ -100,7 +109,7 @@ export const getMonth = async (
               categoryId: category.id,
             })
       );
-  } else if (monthId) {
+  } else {
     return getDocumentReference(category.id, monthId)
       .get()
       .then((month) => createMonth({ snapshot: month }));

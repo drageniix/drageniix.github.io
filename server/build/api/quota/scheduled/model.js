@@ -1,20 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const persistence_1 = require("../gateway/persistence");
-class BudgetTransaction extends persistence_1.DataBaseModel {
+class BudgetScheduled extends persistence_1.DataBaseModel {
     constructor({ explicit, snapshot, }) {
         super({
             explicit,
             snapshot,
         });
-        const { date, amount, note, cleared, flagColor, accountId, accountName, payeeId, payeeName, categoryId, categoryName, userId, plaidTransactionId, } = explicit || snapshot.data();
+        const { date, amount, note, flagColor, accountId, accountName, payeeId, payeeName, categoryId, categoryName, userId, frequency, } = explicit || snapshot.data();
         this.date =
             (snapshot && date && date.toDate()) ||
                 (date && new Date(date)) ||
                 new Date();
         this.amount = amount || 0;
         this.note = note;
-        this.cleared = cleared || false;
         this.flagColor = flagColor;
         this.accountId = accountId;
         this.accountName = accountName;
@@ -23,7 +22,7 @@ class BudgetTransaction extends persistence_1.DataBaseModel {
         this.categoryId = categoryId;
         this.categoryName = categoryName;
         this.userId = userId;
-        this.plaidTransactionId = plaidTransactionId;
+        this.frequency = frequency;
     }
     getDisplayFormat() {
         return persistence_1.filterUndefinedProperties({
@@ -31,7 +30,6 @@ class BudgetTransaction extends persistence_1.DataBaseModel {
             date: this.date.toDateString(),
             amount: this.amount,
             note: this.note,
-            cleared: this.cleared,
             flagColor: this.flagColor,
             accountId: (typeof this.accountId === "object" && this.accountId.id) ||
                 this.accountId,
@@ -48,7 +46,6 @@ class BudgetTransaction extends persistence_1.DataBaseModel {
             date: this.date,
             amount: this.amount,
             note: this.note,
-            cleared: this.cleared,
             flagColor: this.flagColor,
             accountId: this.accountId,
             accountName: this.accountName,
@@ -57,8 +54,8 @@ class BudgetTransaction extends persistence_1.DataBaseModel {
             categoryId: this.categoryId,
             categoryName: this.categoryName,
             userId: this.userId,
-            plaidTransactionId: this.plaidTransactionId,
+            frequency: this.frequency,
         };
     }
 }
-exports.default = BudgetTransaction;
+exports.default = BudgetScheduled;

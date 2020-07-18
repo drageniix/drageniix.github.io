@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateAccount = exports.postAccounts = exports.postAccount = exports.getAllAccounts = exports.getAccountReferenceById = exports.getAccount = exports.createAndPostAccount = exports.createAccount = exports.updateLinkedAccountName = exports.createMatchingPayee = exports.createAccountsFromInstitution = exports.BudgetAccount = exports.BudgetAccountRoutes = void 0;
+exports.updateAccount = exports.postAccounts = exports.postAccount = exports.getAllAccounts = exports.getAccountReferenceById = exports.getAccount = exports.createAndPostAccount = exports.createAccount = exports.updateLinkedAccountName = exports.createMatchingPayee = exports.addManualAccount = exports.createAccountsFromInstitution = exports.BudgetAccount = exports.BudgetAccountRoutes = void 0;
 const BudgetAccountBusiness = __importStar(require("./business"));
 const model_1 = __importDefault(require("./model"));
 exports.BudgetAccount = model_1.default;
@@ -38,7 +38,8 @@ exports.getAllAccounts = getAllAccounts;
 exports.postAccount = postAccount;
 exports.postAccounts = postAccounts;
 exports.updateAccount = updateAccount;
-const { createAccountsFromInstitution, createMatchingPayee, updateLinkedAccountName, } = BudgetAccountBusiness;
+const { addManualAccount, createAccountsFromInstitution, createAndPostMatchingPayee: createMatchingPayee, updateLinkedAccountName, } = BudgetAccountBusiness;
+exports.addManualAccount = addManualAccount;
 exports.createAccountsFromInstitution = createAccountsFromInstitution;
 exports.createMatchingPayee = createMatchingPayee;
 exports.updateLinkedAccountName = updateLinkedAccountName;
