@@ -1,5 +1,10 @@
 import { Transaction } from "plaid";
-import { BudgetTransaction, createTransaction } from ".";
+import {
+  BudgetTransaction,
+  createTransaction,
+  getTransaction,
+  updateTransaction,
+} from ".";
 import * as BudgetAccountController from "../account";
 import * as BudgetCategoryController from "../categories";
 import {
@@ -9,8 +14,7 @@ import {
 import * as BudgetInstitutionController from "../institution";
 import * as BudgetMonthController from "../months";
 import * as BudgetPayeeController from "../payees";
-
-// TODO: update accounts, payees, and months
+import * as BudgetScheduledController from "../scheduled";
 
 export const addManualTransaction = async (
   userRef: DocumentReference,
@@ -75,6 +79,30 @@ export const addManualTransaction = async (
     },
   });
 };
+
+export const convertScheduledTransaction = async (
+  userRef: DocumentReference,
+  scheduledTransactionId: documentReferenceType
+): Promise<BudgetTransaction> =>
+  BudgetScheduledController.getScheduled(userRef, scheduledTransactionId).then(
+    (scheduledTransaction) =>
+      createTransaction({
+        explicit: {
+          accountId: scheduledTransaction.accountId,
+          accountName: scheduledTransaction.accountName,
+          amount: scheduledTransaction.amount,
+          cleared: true,
+          note: scheduledTransaction.note,
+          date: scheduledTransaction.date,
+          payeeId: scheduledTransaction.payeeId,
+          payeeName: scheduledTransaction.payeeName,
+          userId: userRef,
+          categoryId: scheduledTransaction.categoryId,
+          categoryName: scheduledTransaction.categoryName,
+          flagColor: scheduledTransaction.flagColor,
+        },
+      })
+  );
 
 export const convertPlaidTransactions = async (
   userRef: DocumentReference,
@@ -141,3 +169,67 @@ export const importTransactionsFromInstitution = (
     .then((transactionList) =>
       convertPlaidTransactions(userId, [].concat(...transactionList))
     );
+
+export const updateLinkedAccounAndMonth = async (
+  userRef: DocumentReference,
+  transactionId: documentReferenceType,
+  {
+    // accountId,
+    payeeId,
+    // categoryId,
+    amount,
+    date,
+    note,
+    flagColor,
+    cleared,
+  }: {
+    // accountId?: DocumentReference;
+    payeeId?: DocumentReference;
+    // categoryId?: DocumentReference;
+    amount?: number;
+    date?: Date;
+    note?: string;
+    flagColor?: string;
+    cleared?: boolean;
+  }
+): Promise<BudgetTransaction> => {
+  const transaction = await getTransaction(userRef, transactionId);
+
+  // TODO: distinguish between transaction clearing, amount update, or accountId update
+  // await BudgetAccountController.getAccount(userRef, {
+  //   accountId: transaction.accountId,
+  // }).then((account) =>
+  //   BudgetAccountController.updateAccount(account, {
+  //     availableBalance: account.availableBalance - amount,
+  //     currentBalance: account.currentBalance + (cleared ? amount : 0),
+  //   })
+  // );
+
+  // // TODO: distinguish between date update or categoryId update
+  // await BudgetCategoryController.getCategory(userRef, {
+  //   categoryId: transaction.categoryId,
+  // }).then((category) =>
+  //   BudgetMonthController.getMonth(userRef, {
+  //     categoryId: category,
+  //     monthId: transaction.date.toISOString().slice(0, 10),
+  //   }).then((month) =>
+  //     BudgetMonthController.updateMonth(month, { activity: amount })
+  //   )
+  // );
+
+  if (payeeId) {
+    const payee = await BudgetPayeeController.getPayee(this.userId, {
+      payeeId: payeeId,
+    });
+    transaction.payeeId = payee.id;
+    transaction.payeeName = payee.name;
+  }
+
+  return updateTransaction(transaction, {
+    amount,
+    date,
+    note,
+    cleared,
+    flagColor,
+  });
+};

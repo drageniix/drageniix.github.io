@@ -68,22 +68,19 @@ router.put(
   isAuth,
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
-      BudgetTransactionController.getTransaction(
+      BudgetTransactionController.updateLinkedAccounAndMonth(
         req.userId,
-        req.params.transactionId
+        req.params.transactionId,
+        {
+          amount: req.body.amount,
+          date: req.body.date,
+          note: req.body.note,
+          cleared: req.body.cleared,
+          flagColor: req.body.flagColor,
+        }
+      ).then((transaction) =>
+        res.status(200).json(transaction.getDisplayFormat())
       )
-        .then((transaction) =>
-          BudgetTransactionController.updateTransaction(transaction, {
-            amount: req.body.amount,
-            date: req.body.date,
-            note: req.body.note,
-            cleared: req.body.cleared,
-            flagColor: req.body.flagColor,
-          })
-        )
-        .then((transaction) =>
-          res.status(200).json(transaction.getDisplayFormat())
-        )
   )
 );
 
@@ -108,6 +105,24 @@ router.post(
             flagColor: req.body.flagColor,
           })
         )
+        .then((transaction) =>
+          BudgetTransactionController.postTransaction(transaction)
+        )
+        .then((transaction) =>
+          res.status(200).json(transaction.getDisplayFormat())
+        )
+  )
+);
+
+router.post(
+  "/scheduled/:scheduledId",
+  isAuth,
+  asyncWrapper(
+    (req: CustomRequest, res: express.Response): Promise<express.Response> =>
+      BudgetTransactionController.convertScheduledTransaction(
+        req.userId,
+        req.params.scheduledId
+      )
         .then((transaction) =>
           BudgetTransactionController.postTransaction(transaction)
         )

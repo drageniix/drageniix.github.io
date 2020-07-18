@@ -566,6 +566,20 @@ paths:
           $ref: "#/components/responses/DefaultResponse"
   /scheduled/{scheduledId}:
     parameters: [$ref: "#/components/parameters/scheduledIdPath"]
+    post:
+      summary: Convert Scheduled Transaction
+      operationId: scheduledConvert
+      tags:
+        - Scheduled
+      responses:
+        200:
+          description: Convert Scheduled Transaction to a formal Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        default:
+          $ref: "#/components/responses/DefaultResponse"
     get:
       summary: Get Scheduled
       operationId: scheduledGet

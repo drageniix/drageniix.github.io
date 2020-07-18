@@ -54,16 +54,26 @@ export const updateMonth = async (
   return month;
 };
 
-// TODO: get months endAt date ( desc )
 export const getAllMonths = async (
   userRef: DocumentReference,
-  categoryId: documentReferenceType
-): Promise<BudgetMonth[]> =>
-  BudgetCategoryController.getCategoryReferenceById(userRef, categoryId)
+  categoryId: documentReferenceType,
+  { endBefore }: { endBefore?: Date } = {}
+): Promise<BudgetMonth[]> => {
+  let query = BudgetCategoryController.getCategoryReferenceById(
+    userRef,
+    categoryId
+  )
     .collection(CollectionTypes.MONTHS)
-    .orderBy("date", "desc")
+    .orderBy("date", "desc");
+
+  if (endBefore) {
+    query = query.endBefore(endBefore);
+  }
+
+  return query
     .get()
     .then((months) => months.docs.map((snapshot) => createMonth({ snapshot })));
+};
 
 export const getMonthReferenceById = (
   categoryRef: DocumentReference,
@@ -110,7 +120,7 @@ export const getMonth = async (
             })
       );
   } else {
-    return getDocumentReference(category.id, monthId)
+    return getMonthReferenceById(category.id, monthId)
       .get()
       .then((month) => createMonth({ snapshot: month }));
   }

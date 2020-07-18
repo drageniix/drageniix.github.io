@@ -1,6 +1,6 @@
 import express = require("express");
 import { json, urlencoded } from "body-parser";
-import * as routes from "./api";
+import quota from "./api/quota";
 import {
   CustomRequest,
   handle400Errors,
@@ -43,7 +43,7 @@ export class App {
       });
     });
 
-    this.app.use("/quota/v1", routes.quota);
+    this.app.use("/quota/v1", quota);
 
     this.app.use(handle400Errors);
     this.app.use(handleErrors);
