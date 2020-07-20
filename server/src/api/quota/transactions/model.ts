@@ -121,7 +121,6 @@ export type BudgetTransactionInternalProperties = {
   categoryId?: DocumentReference;
   categoryName?: string;
   userId?: DocumentReference;
-  institutionId?: DocumentReference;
   plaidTransactionId?: string;
 };
 

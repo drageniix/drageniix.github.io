@@ -1,3 +1,26 @@
 account 6GrOoCMShRxVNEBIbIQe
 category uUXA1rq0trHHerUIIFus
 payee WNLaYDHEoq4OqWwTInU3
+
+reddit:
+% account balance over time (replace starting balance)
+biweekly budget (planned for budget)
+reccuring tracker (decrease/increase/average) per payee/category
+
+other apps:
+emergency fund builder (planned for budget)
+move budgeted
+save receipts
+export to csv
+debts
+merge accounts
+transfers
+category/account groups 
+deletes
+
+front end:
+charts/diagrams by day/paycheck/month/year to show percentage
+themes
+undo
+
+https://play.google.com/store/apps/details?id=com.expensemanager

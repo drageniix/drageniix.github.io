@@ -90,7 +90,7 @@ export const updateCategory = async (
   }: {
     name?: string;
     note?: string;
-  }
+  } = {}
 ): Promise<BudgetCategory> => {
   category.name = name || category.name;
   category.note = note || category.note;

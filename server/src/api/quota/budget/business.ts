@@ -1,7 +1,7 @@
 import { BudgetSuggested } from ".";
 import * as BudgetCategoryController from "../categories";
+import * as BudgetMonthController from "../categories/months";
 import { DocumentReference } from "../gateway/persistence";
-import * as BudgetMonthController from "../months";
 import * as BudgetScheduledController from "../scheduled";
 
 export const calculateUnderfunded = async (

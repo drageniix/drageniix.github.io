@@ -1,12 +1,13 @@
-import { Category } from "plaid";
 import { BudgetCategory, createCategory } from ".";
 import { DocumentReference } from "../gateway/persistence";
+import { PlaidCategory } from "../gateway/plaid";
 import * as BudgetScheduledController from "../scheduled";
 import * as BudgetTransactionController from "../transactions";
+import * as BudgetMonthController from "./months";
 
 export const createDefaultCategories = async (
   userId: DocumentReference,
-  categories: Category[]
+  categories: PlaidCategory[]
 ): Promise<BudgetCategory[]> => {
   const categoryMap: { [key: string]: string[] } = categories.reduce(
     (prev, curr) => {
@@ -58,3 +59,37 @@ export const updateLinkedCategoryName = async (
 
   return category;
 };
+
+export const updateCategoryMonthBalance = async (
+  userRef: DocumentReference,
+  category: BudgetCategory,
+  { date }: { date: string }
+): Promise<BudgetCategory> =>
+  BudgetMonthController.getMonth(userRef, {
+    categoryId: category,
+    monthId: date,
+  })
+    .then(async (month) => {
+      const startDate = new Date(month.date);
+      const endDate = new Date(month.date);
+      endDate.setMonth(endDate.getMonth() + 1);
+
+      const transactions = await BudgetTransactionController.getAllTransactions(
+        userRef,
+        {
+          startDate: `${
+            startDate.getFullYear
+          }-${startDate.getMonth()}-${startDate.getDate()}`,
+          endDate: `${
+            endDate.getFullYear
+          }-${endDate.getMonth()}-${endDate.getDate()}`,
+          categoryId: category,
+          cleared: true,
+        }
+      );
+
+      await BudgetMonthController.updateCategoryMonth(month, {
+        activity: transactions.reduce((prev, curr) => prev + curr.amount, 0),
+      });
+    })
+    .then(() => category);

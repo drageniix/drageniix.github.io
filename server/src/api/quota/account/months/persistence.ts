@@ -1,5 +1,5 @@
 import { BudgetMonth, BudgetMonthInternalProperties } from ".";
-import * as BudgetCategoryController from "../categories";
+import * as BudgetAccountController from "..";
 import {
   CollectionTypes,
   DocumentReference,
@@ -8,60 +8,51 @@ import {
   getDocumentReference,
   postModelToCollection,
   updateModel,
-} from "../gateway/persistence";
+} from "../../gateway/persistence";
 
 const dateRegex = new RegExp(/^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])$/, "g");
 
-export const createMonth = (parameters: {
+export const createAccountMonth = (parameters: {
   explicit?: BudgetMonthInternalProperties;
   snapshot?: DocumentSnapshot;
 }): BudgetMonth => new BudgetMonth(parameters);
 
-export const postMonth = async (month: BudgetMonth): Promise<BudgetMonth> => {
+export const postAccountMonth = async (
+  month: BudgetMonth
+): Promise<BudgetMonth> => {
   await postModelToCollection(
     month,
-    month.categoryId.collection(CollectionTypes.MONTHS)
+    month.accountId.collection(CollectionTypes.MONTHS)
   );
 
   return month;
 };
 
-export const createAndPostMonth = async (
+export const createAndPostAccountMonth = async (
   explicit: BudgetMonthInternalProperties
-): Promise<BudgetMonth> => postMonth(createMonth({ explicit }));
+): Promise<BudgetMonth> => postAccountMonth(createAccountMonth({ explicit }));
 
 export const updateMonth = async (
   month: BudgetMonth,
   {
-    activity,
-    carryOverBalance,
-    budget,
+    balance,
   }: {
-    activity?: number;
-    carryOverBalance?: number;
-    budget?: number;
+    balance?: number;
   }
 ): Promise<BudgetMonth> => {
-  if (activity) {
-    month.activity += activity;
-  }
-
-  month.carryOverBalance = carryOverBalance || month.carryOverBalance;
-  month.budgeted = budget || month.budgeted;
-  month.balance = month.activity + month.budgeted + month.carryOverBalance;
-
+  month.balance = balance || month.balance;
   await updateModel(month);
   return month;
 };
 
-export const getAllMonths = async (
+export const getAllAccountMonths = async (
   userRef: DocumentReference,
-  categoryId: documentReferenceType,
+  accountId: documentReferenceType,
   { endBefore }: { endBefore?: Date } = {}
 ): Promise<BudgetMonth[]> => {
-  let query = BudgetCategoryController.getCategoryReferenceById(
+  let query = BudgetAccountController.getAccountReferenceById(
     userRef,
-    categoryId
+    accountId
   )
     .collection(CollectionTypes.MONTHS)
     .orderBy("date", "desc");
@@ -72,27 +63,29 @@ export const getAllMonths = async (
 
   return query
     .get()
-    .then((months) => months.docs.map((snapshot) => createMonth({ snapshot })));
+    .then((months) =>
+      months.docs.map((snapshot) => createAccountMonth({ snapshot }))
+    );
 };
 
-export const getMonthReferenceById = (
-  categoryRef: DocumentReference,
+export const getAccountMonthReferenceById = (
+  accountRef: DocumentReference,
   monthRef: documentReferenceType
 ): DocumentReference =>
-  getDocumentReference(categoryRef, monthRef, CollectionTypes.MONTHS);
+  getDocumentReference(accountRef, monthRef, CollectionTypes.MONTHS);
 
-export const getMonth = async (
+export const getAccountMonth = async (
   userRef: DocumentReference,
   {
-    categoryId,
+    accountId,
     monthId,
   }: {
-    categoryId: documentReferenceType;
+    accountId: documentReferenceType;
     monthId: documentReferenceType;
   }
 ): Promise<BudgetMonth> => {
-  const category = await BudgetCategoryController.getCategory(userRef, {
-    categoryId,
+  const account = await BudgetAccountController.getAccount(userRef, {
+    accountId,
   });
 
   if (
@@ -104,7 +97,7 @@ export const getMonth = async (
     const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
 
     // search
-    return category.id
+    return account.id
       .collection("months")
       .orderBy("date")
       .startAt(startDate)
@@ -112,16 +105,16 @@ export const getMonth = async (
       .get()
       .then((months) =>
         months.docs.length === 1
-          ? createMonth({ snapshot: months.docs[0] })
-          : createAndPostMonth({
+          ? createAccountMonth({ snapshot: months.docs[0] })
+          : createAndPostAccountMonth({
               date: startDate,
-              userId: category.userId,
-              categoryId: category.id,
+              userId: account.userId,
+              accountId: account.id,
             })
       );
   } else {
-    return getMonthReferenceById(category.id, monthId)
+    return getAccountMonthReferenceById(account.id, monthId)
       .get()
-      .then((month) => createMonth({ snapshot: month }));
+      .then((month) => createAccountMonth({ snapshot: month }));
   }
 };

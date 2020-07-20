@@ -15,6 +15,8 @@ router.get(
         payeeId: req.query.payeeId as string,
         categoryId: req.query.categoryId as string,
         flagColor: req.query.flagColor as string,
+        startDate: req.query.startDate as string,
+        endDate: req.query.startDate as string,
       }).then((transactions) =>
         res.status(200).json({
           transactions: transactions.map((transaction) =>
@@ -39,13 +41,9 @@ router.post(
         cleared: req.body.cleared,
         flagColor: req.body.flagColor,
         note: req.body.note,
-      })
-        .then((transaction) =>
-          BudgetTransactionController.postTransaction(transaction)
-        )
-        .then((transaction) =>
-          res.status(200).json(transaction.getDisplayFormat())
-        )
+      }).then((transaction) =>
+        res.status(200).json(transaction.getDisplayFormat())
+      )
   )
 );
 
@@ -68,7 +66,7 @@ router.put(
   isAuth,
   asyncWrapper(
     (req: CustomRequest, res: express.Response): Promise<express.Response> =>
-      BudgetTransactionController.updateLinkedAccounAndMonth(
+      BudgetTransactionController.updateTransactionAndLinkedAmounts(
         req.userId,
         req.params.transactionId,
         {
@@ -106,9 +104,6 @@ router.post(
           })
         )
         .then((transaction) =>
-          BudgetTransactionController.postTransaction(transaction)
-        )
-        .then((transaction) =>
           res.status(200).json(transaction.getDisplayFormat())
         )
   )
@@ -122,13 +117,9 @@ router.post(
       BudgetTransactionController.convertScheduledTransaction(
         req.userId,
         req.params.scheduledId
+      ).then((transaction) =>
+        res.status(200).json(transaction.getDisplayFormat())
       )
-        .then((transaction) =>
-          BudgetTransactionController.postTransaction(transaction)
-        )
-        .then((transaction) =>
-          res.status(200).json(transaction.getDisplayFormat())
-        )
   )
 );
 

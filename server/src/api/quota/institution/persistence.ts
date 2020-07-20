@@ -46,7 +46,7 @@ export const updateInstitution = async (
     updatedAt,
   }: {
     updatedAt?: Date;
-  }
+  } = {}
 ): Promise<BudgetInstitution> => {
   institution.updatedAt = updatedAt || institution.updatedAt;
   await updateModel(institution);

@@ -4,8 +4,11 @@ import { asyncWrapper, CustomRequest } from "../gateway/express";
 import { getPlaidAccounts } from "../gateway/plaid";
 import * as BudgetInstitutionController from "../institution";
 import { isAuth } from "../validations/common";
+import * as BudgetMonthController from "./months";
 
 export const router = express.Router({ mergeParams: true });
+
+router.use("/:accountId/months", BudgetMonthController.router);
 
 router.get(
   "/",
@@ -83,6 +86,17 @@ router.post(
         )
       )
         .then((accounts) => BudgetAccountController.postAccounts(accounts))
+        .then((accounts) =>
+          Promise.all(
+            accounts.map((account) =>
+              BudgetAccountController.updateAccountMonthBalance(
+                account.userId,
+                account,
+                { date: new Date().toISOString().slice(0, 10) }
+              )
+            )
+          )
+        )
         .then((accounts) =>
           Promise.all(
             accounts.map((account) =>

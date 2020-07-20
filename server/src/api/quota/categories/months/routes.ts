@@ -1,7 +1,7 @@
 import express from "express";
 import * as BudgetMonthController from ".";
-import { asyncWrapper, CustomRequest } from "../gateway/express";
-import { isAuth } from "../validations/common";
+import { asyncWrapper, CustomRequest } from "../../gateway/express";
+import { isAuth } from "../../validations/common";
 
 export const router = express.Router({ mergeParams: true });
 
@@ -43,7 +43,7 @@ router.put(
         .then(
           (month) =>
             (req.body.budget &&
-              BudgetMonthController.updateMonth(month, {
+              BudgetMonthController.updateCategoryMonth(month, {
                 budget: req.body.budget,
               })) ||
             month

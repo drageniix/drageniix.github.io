@@ -16,7 +16,7 @@ export const createUser = (parameters: {
 
 export const updateUser = async (
   user: BudgetUser,
-  { name, email, privilege }: BudgetUserInternalProperties
+  { name, email, privilege }: BudgetUserInternalProperties = {}
 ): Promise<BudgetUser> => {
   name && (user.name = name);
   email && (user.email = email);

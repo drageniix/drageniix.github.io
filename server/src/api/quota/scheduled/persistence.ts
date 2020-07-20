@@ -139,7 +139,7 @@ export const updateScheduled = async (
     note?: string;
     frequency?: string;
     flagColor?: string;
-  }
+  } = {}
 ): Promise<BudgetScheduled> => {
   model.amount = amount || model.amount;
   model.date = date || model.date;

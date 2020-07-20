@@ -1,10 +1,11 @@
-import { Account } from "plaid";
-import { BudgetAccount, createAccount, updateAccount } from ".";
+import { BudgetAccount, createAccount, getAccount, updateAccount } from ".";
 import { DocumentReference } from "../gateway/persistence";
+import { PlaidAccount } from "../gateway/plaid";
 import * as BudgetInstitutionController from "../institution";
 import * as BudgetPayeeController from "../payees";
 import * as BudgetScheduledController from "../scheduled";
 import * as BudgetTransactionController from "../transactions";
+import * as BudgetMonthController from "./months";
 
 export const addManualAccount = async (
   userRef: DocumentReference,
@@ -121,7 +122,7 @@ export const createAndPostMatchingPayee = async (
 
 export const createAccountsFromInstitution = async (
   institution: BudgetInstitutionController.BudgetInstitution,
-  accounts: Account[]
+  accounts: PlaidAccount[]
 ): Promise<BudgetAccount[]> =>
   Promise.all(
     accounts.map((account) =>
@@ -133,7 +134,7 @@ export const createAccountsFromInstitution = async (
           originalName: account.official_name,
           availableBalance: account.balances.available,
           currentBalance: account.balances.current,
-          startingBalance: account.balances.current,
+          openingBalance: account.balances.current,
           type: account.type,
           subtype: account.subtype,
           plaidAccountId: account.account_id,
@@ -141,3 +142,101 @@ export const createAccountsFromInstitution = async (
       })
     )
   );
+
+export const updateAccountMonthBalance = async (
+  userRef: DocumentReference,
+  account: BudgetAccount,
+  { date }: { date: string }
+): Promise<BudgetAccount> =>
+  BudgetMonthController.getAccountMonth(userRef, {
+    accountId: account,
+    monthId: date,
+  })
+    .then(async (month) => {
+      const startDate = new Date(month.date);
+      const endDate = new Date(month.date);
+      endDate.setMonth(endDate.getMonth() + 1);
+
+      const transactions = await BudgetTransactionController.getAllTransactions(
+        userRef,
+        {
+          startDate: `${
+            startDate.getFullYear
+          }-${startDate.getMonth()}-${startDate.getDate()}`,
+          endDate: `${
+            endDate.getFullYear
+          }-${endDate.getMonth()}-${endDate.getDate()}`,
+          accountId: account,
+          cleared: true,
+        }
+      );
+
+      await BudgetMonthController.updateMonth(month, {
+        balance: transactions.reduce((prev, curr) => prev + curr.amount, 0),
+      });
+    })
+    .then(() => account);
+
+// TODO: distinguish between transaction clearing, amount update, or accountId update
+export const updateAccountFromTransaction = async (
+  userRef: DocumentReference,
+  {
+    accountId,
+    amount,
+    cleared,
+  }: {
+    accountId?: DocumentReference;
+    amount?: number;
+    cleared?: boolean;
+  },
+  {
+    oldAccountId,
+    oldAmount,
+    oldCleared,
+  }: {
+    oldAccountId?: DocumentReference;
+    oldAmount?: number;
+    oldCleared?: boolean;
+  }
+): Promise<BudgetAccount[]> => {
+  const existingAccount = await getAccount(userRef, {
+    accountId: oldAccountId,
+  });
+
+  const affectedAccounts: BudgetAccount[] = [existingAccount];
+
+  if (!accountId) {
+    if (!amount) {
+      if (!cleared && typeof cleared === "boolean") {
+        existingAccount.currentBalance -= oldAmount;
+      } else if (cleared) {
+        existingAccount.currentBalance += oldAmount;
+      }
+    } else if (amount) {
+      existingAccount.availableBalance +=
+        existingAccount.availableBalance - oldAmount + amount;
+      existingAccount.currentBalance +=
+        existingAccount.currentBalance +
+        (oldCleared && !cleared
+          ? -oldAmount + amount
+          : !oldCleared && cleared
+          ? amount || oldAmount
+          : 0);
+    }
+
+    await updateAccount(existingAccount);
+  } else if (accountId) {
+    // TODO: New Account Id for transaction
+    const newAccount = await getAccount(userRef, {
+      accountId,
+    });
+
+    newAccount.availableBalance += amount || oldAmount;
+    newAccount.currentBalance +=
+      oldCleared || cleared ? amount || oldAmount : 0;
+
+    await updateAccount(newAccount);
+    affectedAccounts.push(newAccount);
+  }
+  return affectedAccounts;
+};

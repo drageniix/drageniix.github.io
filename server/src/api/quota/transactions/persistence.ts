@@ -9,7 +9,7 @@ import {
   getDocumentReference,
   postModelToCollection,
   Query,
-  updateModel,
+  updateModel
 } from "../gateway/persistence";
 import { getPayeeReferenceById } from "../payees";
 
@@ -55,17 +55,27 @@ export const getAllTransactions = async (
     categoryId,
     flagColor,
     limit,
+    cleared,
+    startDate,
+    endDate,
   }: {
     accountId?: documentReferenceType;
     payeeId?: documentReferenceType;
     categoryId?: documentReferenceType;
     flagColor?: string;
     limit?: number;
+    cleared?: boolean;
+    startDate?: string;
+    endDate?: string;
   } = {}
 ): Promise<BudgetTransaction[]> => {
   let query: Query = userRef
     .collection(CollectionTypes.TRANSACTIONS)
     .orderBy("date", "asc");
+
+  if (startDate && endDate) {
+    query = query.startAt(new Date(startDate)).endBefore(new Date(endDate));
+  }
 
   if (accountId || payeeId || categoryId) {
     if (accountId) {
@@ -82,6 +92,10 @@ export const getAllTransactions = async (
 
   if (flagColor) {
     query = query.where("flagColor", "==", flagColor);
+  }
+
+  if (cleared) {
+    query = query.where("cleared", "==", cleared);
   }
 
   if (limit) {
@@ -135,7 +149,7 @@ export const updateTransaction = async (
     note?: string;
     flagColor?: string;
     cleared?: boolean;
-  }
+  } = {}
 ): Promise<BudgetTransaction> => {
   model.amount = amount || model.amount;
   model.date = date || model.date;

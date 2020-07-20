@@ -1,4 +1,5 @@
 import {
+  CollectionReference,
   DataBaseModel,
   DocumentReference,
   DocumentSnapshot,
@@ -10,7 +11,7 @@ export class BudgetAccount extends DataBaseModel {
   originalName: string;
   availableBalance: number;
   currentBalance: number;
-  startingBalance: number;
+  openingBalance: number;
   note?: string;
   onBudget: boolean;
   type: string;
@@ -22,6 +23,7 @@ export class BudgetAccount extends DataBaseModel {
   institutionName?: string;
   userId?: DocumentReference;
   active?: boolean;
+  months?: CollectionReference;
 
   constructor({
     explicit,
@@ -37,7 +39,7 @@ export class BudgetAccount extends DataBaseModel {
       originalName,
       availableBalance,
       currentBalance,
-      startingBalance,
+      openingBalance,
       note,
       onBudget,
       type,
@@ -49,13 +51,14 @@ export class BudgetAccount extends DataBaseModel {
       institutionName,
       userId,
       active,
+      months,
     } = explicit || (snapshot && snapshot.data());
 
     this.name = name;
     this.originalName = originalName || name;
     this.availableBalance = availableBalance || currentBalance || 0;
     this.currentBalance = currentBalance || 0;
-    this.startingBalance = startingBalance || currentBalance || 0;
+    this.openingBalance = openingBalance || currentBalance || 0;
     this.note = note;
     this.active = active || false;
     this.onBudget = onBudget || false;
@@ -67,6 +70,7 @@ export class BudgetAccount extends DataBaseModel {
     this.institutionId = institutionId;
     this.institutionName = institutionName;
     this.userId = userId;
+    this.months = months;
   }
 
   getDisplayFormat(): BudgetAccountDisplayProperties {
@@ -76,7 +80,7 @@ export class BudgetAccount extends DataBaseModel {
       originalName: this.originalName,
       availableBalance: this.availableBalance,
       currentBalance: this.currentBalance,
-      startingBalance: this.startingBalance,
+      openingBalance: this.openingBalance,
       note: this.note,
       onBudget: this.onBudget,
       active: this.active,
@@ -95,7 +99,7 @@ export class BudgetAccount extends DataBaseModel {
       originalName: this.originalName,
       availableBalance: this.availableBalance,
       currentBalance: this.currentBalance,
-      startingBalance: this.startingBalance,
+      openingBalance: this.openingBalance,
       note: this.note,
       onBudget: this.onBudget,
       type: this.type,
@@ -117,7 +121,7 @@ export type BudgetAccountInternalProperties = {
   originalName?: string;
   availableBalance?: number;
   currentBalance?: number;
-  startingBalance?: number;
+  openingBalance?: number;
   note?: string;
   onBudget?: boolean;
   type?: string;
@@ -129,6 +133,7 @@ export type BudgetAccountInternalProperties = {
   institutionName?: string;
   userId?: DocumentReference;
   active?: boolean;
+  months?: CollectionReference;
 };
 
 type BudgetAccountDisplayProperties = {
@@ -137,7 +142,7 @@ type BudgetAccountDisplayProperties = {
   originalName?: string;
   availableBalance?: number;
   currentBalance?: number;
-  startingBalance?: number;
+  openingBalance?: number;
   note?: string;
   onBudget?: boolean;
   type?: string;

@@ -2,13 +2,65 @@ import {
   Account,
   AccountsResponse,
   CategoriesResponse,
+  Category,
   GetInstitutionByIdResponse,
   Institution,
   ItemResponse,
   TokenResponse,
+  Transaction,
+  TransactionLocation,
+  TransactionPaymentMeta,
   TransactionsResponse,
 } from "plaid";
 import plaid from "../../../middleware/plaid";
+
+export class PlaidTransaction implements Transaction {
+  account_id: string;
+  account_owner: string;
+  amount: number;
+  iso_currency_code: string;
+  unofficial_currency_code: string;
+  category: string[];
+  category_id: string;
+  date: string;
+  authorized_date: string;
+  location: TransactionLocation;
+  name: string;
+  payment_channel: string;
+  payment_meta: TransactionPaymentMeta;
+  pending: boolean;
+  pending_transaction_id: string;
+  transaction_id: string;
+  transaction_type: string;
+  transaction_code: string;
+}
+
+export class PlaidCategory implements Category {
+  group: string;
+  hierarchy: string[];
+  category_id: string;
+}
+
+export class PlaidAccount implements Account {
+  balances: {
+    available: number;
+    current: number;
+    limit: number;
+    iso_currency_code: string;
+    unofficial_currency_code: string;
+  };
+  account_id: string;
+  mask: string;
+  name: string;
+  official_name: string;
+  subtype: string;
+  type: string;
+  verification_status:
+    | "pending_automatic_verification"
+    | "pending_manual_verification"
+    | "manually_verified"
+    | "automatically_verified";
+}
 
 export const exchangePlaidPublicToken = (
   publicToken: string
